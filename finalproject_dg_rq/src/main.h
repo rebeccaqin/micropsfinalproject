@@ -15,8 +15,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // Wifi Network Info (make sure to keep surrounding double quotes)
-// #define SSID "<YOURSSIDHERE>"
-// #define PASSWORD "<YOURPASSWORDHERE>"
+#define SSID "Structure"
+#define PASSWORD "structure0770"
 
 #define NVIC_ISER0 ((uint32_t *) 0xE000E100UL)
 #define NVIC_ISER1 ((uint32_t *) 0xE000E104UL)
