@@ -31,9 +31,28 @@ typedef struct {
 } ADCSR_bits;
 
 typedef struct {
+  __IO uint32_t ADON    :1;
+  __IO uint32_t CONT    :1;
+  __IO uint32_t         :6;
+  __IO uint32_t DMA     :1;
+  __IO uint32_t DDS     :1;
+  __IO uint32_t EOCS    :1;
+  __IO uint32_t ALIGN   :1;
+  __IO uint32_t         :4; 
+  __IO uint32_t JEXTSEL :4;
+  __IO uint32_t JEXTEN  :2;
+  __IO uint32_t JSWSTART:1;
+  __IO uint32_t         :1;
+  __IO uint32_t EXTSEL  :4;
+  __IO uint32_t EXTEN   :2;
+  __IO uint32_t SWSTART :1;
+  __IO uint32_t         :1;
+} ADCCR2_bits;
+
+typedef struct {
   __IO ADCSR_bits ADCSR;      /*!< ADC status register,   Address offset: 0x00 */
   __IO uint32_t ADCCR1;     /*!< ADC control register 1,              Address offset: 0x04 */
-  __IO uint32_t ADCCR2;  /*!< ADC control register 2,       Address offset: 0x08 */
+  __IO ADCCR2_bits ADCCR2;  /*!< ADC control register 2,       Address offset: 0x08 */
   __IO uint32_t ADCSMPR1;       /*!< ADC sample time register 1,           Address offset: 0x0C */
   __IO uint32_t ADCSMPR2;       /*!< ADC sample time register 2,          Address offset: 0x10 */
   __IO uint32_t ADCJOFR1;    /*!< ADC injected channel data offset register 1,  Address offset: 0x14 */
