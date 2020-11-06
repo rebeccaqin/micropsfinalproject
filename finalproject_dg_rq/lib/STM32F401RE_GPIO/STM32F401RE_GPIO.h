@@ -47,6 +47,17 @@
 // Bitfield structs
 ///////////////////////////////////////////////////////////////////////////////
 
+typedef struct {
+    volatile uint32_t AFRL0     : 4;
+    volatile uint32_t AFRL1     : 4;
+    volatile uint32_t AFRL2     : 4;
+    volatile uint32_t AFRL3     : 4;
+    volatile uint32_t AFRL4     : 4;
+    volatile uint32_t AFRL5     : 4;
+    volatile uint32_t AFRL6     : 4;
+    volatile uint32_t AFRL7     : 4;
+} AFRL_bits;
+
 // GPIO register structs here
 typedef struct {
     volatile uint32_t MODER;   // GPIO Offset 0x00 GPIO port mode register
@@ -57,7 +68,7 @@ typedef struct {
     volatile uint32_t ODR;     // GPIO Offset 0x14
     volatile uint32_t BSRR;    // GPIO Offset 0x18
     volatile uint32_t LCKR;    // GPIO Offset 0x1C
-    volatile uint32_t AFRL;    // GPIO Offset 0x20
+    volatile AFRL_bits AFRL;    // GPIO Offset 0x20
     volatile uint32_t AFRH;    // GPIO Offset 0x24
 } GPIO_TypeDef;
 

@@ -22,6 +22,11 @@
 #define NVIC_ISER1 ((uint32_t *) 0xE000E104UL)
 #define SYSCFG_EXTICR4 ((uint32_t *) (0x40013800UL + 0x14UL))
 
+#define NSS_PIN GPIO_PA1
+#define SPI1CLK_PIN GPIO_PA5
+#define MISO_PIN GPIO_PA6
+#define MOSI_PIN GPIO_PA7
+
 typedef struct {
     volatile uint32_t IMR;
     volatile uint32_t EMR;
@@ -44,7 +49,7 @@ typedef struct {
 #define ESP_USART_ID USART1_ID
 #define TERM_USART_ID USART2_ID
 #define DELAY_TIM TIM2
-#define CMD_DELAY_MS 30
+#define CMD_DELAY_MS 40
 #define BUFFER_SIZE 2048
 
 ///////////////////////////////////////////////////////////////////////////////

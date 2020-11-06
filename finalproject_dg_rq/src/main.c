@@ -17,18 +17,21 @@ void initESP8266(USART_TypeDef * ESP_USART, USART_TypeDef * TERM_USART){
 
     // Disable echo
     sendString(ESP_USART, "ATE0\r\n");
+    delay_millis(DELAY_TIM, CMD_DELAY_MS);
     readString(ESP_USART, str);
     sendString(TERM_USART, str);
     delay_millis(DELAY_TIM, CMD_DELAY_MS);
 
     // Enable multiple connections
     sendString(ESP_USART, "AT+CIPMUX=1\r\n");
+    delay_millis(DELAY_TIM, CMD_DELAY_MS);
     readString(ESP_USART, str);
     sendString(TERM_USART, str);
     delay_millis(DELAY_TIM, CMD_DELAY_MS);
 
     // Create TCP server on port 80
     sendString(ESP_USART, "AT+CIPSERVER=1,80\r\n");
+    delay_millis(DELAY_TIM, CMD_DELAY_MS);
     readString(ESP_USART, str);
     sendString(TERM_USART, str);
     delay_millis(DELAY_TIM, CMD_DELAY_MS);
@@ -38,6 +41,7 @@ void initESP8266(USART_TypeDef * ESP_USART, USART_TypeDef * TERM_USART){
     sprintf(connect_cmd,"AT+CWJAP=\"%s\",\"%s\"\r\n", SSID, PASSWORD);
 
     sendString(ESP_USART, connect_cmd);
+    delay_millis(DELAY_TIM, CMD_DELAY_MS);
     readString(ESP_USART, str);
     sendString(TERM_USART, str);
     delay_millis(DELAY_TIM, CMD_DELAY_MS);
@@ -47,6 +51,7 @@ void initESP8266(USART_TypeDef * ESP_USART, USART_TypeDef * TERM_USART){
 
     // Print out status
     sendString(ESP_USART, "AT+CIFSR\r\n");
+    delay_millis(DELAY_TIM, CMD_DELAY_MS);
     readString(ESP_USART, str);
     sendString(TERM_USART, str);
 }
@@ -101,13 +106,30 @@ int main(void) {
 
     // Enable GPIOA clock
     RCC->AHB1ENR.GPIOAEN = 1;
+    
+    // Enable and configure SPI1
+    RCC->APB2ENR.SPI1EN = 0b1; 
+    configureSPI();
+
+    // Enable ADC1
+    RCC->APB2ENR.ADC1EN = 0b1;
 
     // Initialize timer
     RCC->APB1ENR |= (1 << 0); // TIM2_EN
     initTIM(DELAY_TIM);
 
-    // Set up LED pin as output
-    pinMode(GPIOA, LED_PIN, GPIO_OUTPUT);
+    // connect GPIO PA 1 pin to NSS 
+    pinMode(GPIOA, NSS_PIN, GPIO_OUTPUT);
+    digitalWrite(NSS_PIN, GPIO_HIGH);
+    // output SPI1 clock on GPIOA pin 5
+    pinMode(GPIOA, SPI1CLK_PIN, GPIO_ALT);
+    GPIOA->AFRL.AFRL5 = 5;
+    // SPI1 MISO on GPIOA pin 6
+    pinMode(GPIOA, MISO_PIN, GPIO_ALT);
+    GPIOA->AFRL.AFRL6 = 5;
+    // SPI1 MOSI on GPIOA pin 7
+    pinMode(GPIOA, MOSI_PIN, GPIO_ALT);
+    GPIOA->AFRL.AFRL7 = 5;
 
     // Configure ESP and Terminal UARTs
     USART_TypeDef * ESP_USART = initUSART(ESP_USART_ID, 115200);

@@ -94,6 +94,25 @@ typedef struct {
 } AHB1ENR_bits;
 
 typedef struct {
+    volatile uint32_t TIM1EN    : 1;
+    volatile uint32_t           : 3;
+    volatile uint32_t USART1EN  : 1;
+    volatile uint32_t USART6EN  : 1;
+    volatile uint32_t           : 2;
+    volatile uint32_t ADC1EN    : 1;
+    volatile uint32_t           : 2;
+    volatile uint32_t SDIOEN    : 1;
+    volatile uint32_t SPI1EN    : 1;
+    volatile uint32_t SPI4EN    : 1;
+    volatile uint32_t SYSCNGEN  : 1;
+    volatile uint32_t           : 1;
+    volatile uint32_t TIM9EN    : 1;
+    volatile uint32_t TIM10EN   : 1;
+    volatile uint32_t TIM11EN   : 1;
+    volatile uint32_t           : 13;
+} APB2ENR_bits;
+
+typedef struct {
   __IO CR_bits      CR;            /*!< RCC clock control register,                                  Address offset: 0x00 */
   __IO PLLCFGR_bits PLLCFGR;       /*!< RCC PLL configuration register,                              Address offset: 0x04 */
   __IO CFGR_bits    CFGR;          /*!< RCC clock configuration register,                            Address offset: 0x08 */
@@ -110,7 +129,7 @@ typedef struct {
   __IO uint32_t     AHB3ENR;       /*!< RCC AHB3 peripheral clock register,                          Address offset: 0x38 */
   uint32_t          RESERVED2;     /*!< Reserved, 0x3C                                                                    */
   __IO uint32_t     APB1ENR;       /*!< RCC APB1 peripheral clock enable register,                   Address offset: 0x40 */
-  __IO uint32_t     APB2ENR;       /*!< RCC APB2 peripheral clock enable register,                   Address offset: 0x44 */
+  __IO APB2ENR_bits APB2ENR;       /*!< RCC APB2 peripheral clock enable register,                   Address offset: 0x44 */
   uint32_t          RESERVED3[2];  /*!< Reserved, 0x48-0x4C                                                               */
   __IO uint32_t     AHB1LPENR;     /*!< RCC AHB1 peripheral clock enable in low power mode register, Address offset: 0x50 */
   __IO uint32_t     AHB2LPENR;     /*!< RCC AHB2 peripheral clock enable in low power mode register, Address offset: 0x54 */
