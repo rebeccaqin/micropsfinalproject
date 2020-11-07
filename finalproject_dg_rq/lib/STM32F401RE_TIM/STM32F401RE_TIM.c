@@ -33,3 +33,25 @@ void delay_micros(TIM_TypeDef * TIMx, uint32_t us){
 
   while(!(TIMx->SR & 1)); // Wait for UIF to go high
 }
+
+void initTIM2() {
+    initTIM(TIM2);
+    //enable all registers
+    TIM2->EGR.UG = 1;
+    
+    //set duty cycle
+    TIM2->CCR1 = SystemCoreClock/30;
+    //set PWM frequency 
+    TIM2->ARR = SystemCoreClock/15;
+    
+    // Enable trigger output on timer update events.
+    TIM2->CR2 &= ~(TIM_CR2_MMS);
+    TIM2->CR2 |=  (0x2 << TIM_CR2_MMS_Pos);
+    TIM2->CR2 |= (TIM_CR2_CCDS); // Set DMA request when update event occurs
+    
+    // Configure interrupt enable on update event
+    TIM2->DIER |= (TIM_DIER_UIE);
+    NVIC_EnableIRQ(TIM2_IRQn);
+    //enable counter
+    TIM2->CR1.CEN = 1;
+}

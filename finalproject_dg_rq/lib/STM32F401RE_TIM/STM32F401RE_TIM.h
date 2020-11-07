@@ -6,7 +6,7 @@
 
 #include <stdint.h> // Include stdint header
 #include "STM32F401RE_GPIO.h"
-
+#include "stm32f4xx.h"
 ///////////////////////////////////////////////////////////////////////////////
 // Definitions
 ///////////////////////////////////////////////////////////////////////////////
@@ -72,5 +72,6 @@ typedef struct
 void initTIM(TIM_TypeDef * TIMx);
 void delay_millis(TIM_TypeDef * TIMx, uint32_t ms);
 void delay_micros(TIM_TypeDef * TIMx, uint32_t us);
+void initTIM2();
 
 #endif

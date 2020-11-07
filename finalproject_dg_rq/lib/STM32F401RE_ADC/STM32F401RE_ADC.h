@@ -12,8 +12,8 @@
 
 #define __IO volatile
 
-// Base addresses for GPIO ports
-#define ADC_BASE (0x40012000UL) // base address of RCC
+// Base addresses for ADC
+#define ADC_BASE (0x40012000UL) // base address of ADC
 
 ///////////////////////////////////////////////////////////////////////////////
 // Bitfield structs
