@@ -57,7 +57,7 @@ void flush_buffer(void);
 /** Define our interrupt service routine here. Make sure to put this function
     call into the correct IRQHandler function to map it to the vector table.
  */
-void usart_ISR(USART_TypeDef * USART);
+void usart_ISR(USART_2_TypeDef * USART);
 
 /** Look for a particular string in the given buffer
     @return 1 if the string is found and 0 if not found

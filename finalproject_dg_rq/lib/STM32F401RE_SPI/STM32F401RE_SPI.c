@@ -24,18 +24,18 @@ void spiInit(uint32_t br, uint32_t cpol, uint32_t cpha) {
     RCC->AHB1ENR.GPIOAEN = 1;
     RCC->AHB1ENR.GPIOBEN = 1;
     
-    RCC->APB2ENR |= (1 << 12); // Turn on SPI1 clock domain (SPI1EN bit in APB2ENR)
+    RCC->APB2ENR.SPI1EN = 1; // Turn on SPI1 clock domain (SPI1EN bit in APB2ENR)
 
     // Initially assigning SPI pins
     pinMode(GPIOA, 5, GPIO_ALT); // PA5, Arduino D13, SPI1_SCK
     pinMode(GPIOA, 7, GPIO_ALT); // PA7, Arduino D11, SPI1_MOSI
     pinMode(GPIOA, 4, GPIO_ALT); // PA4, Arduino A2, SPI1_NSS
-    pinMode(GPIOB, 6, GPIO_OUTPUT); // PB6, Arduino D10, Manual CS
+    pinMode(GPIOA, 1, GPIO_OUTPUT); // PA1, Arduino D10, Manual CS
 
     // Set to AF05 for SPI alternate functions
-    GPIOA->AFRL |= (1 << 22) | (1 << 20);
-    GPIOA->AFRL |= (1 << 30) | (1 << 28);
-    GPIOA->AFRL |= (1 << 18) | (1 << 16);
+    GPIOA->AFRL.AFRL5 = 5;
+    GPIOA->AFRL.AFRL6 = 5;
+    GPIOA->AFRL.AFRL7 = 5;
 
     SPI1->CR1.BR = br;      // Set the clock divisor
     SPI1->CR1.CPOL = cpol;  // Set the polarity

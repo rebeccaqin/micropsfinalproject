@@ -62,7 +62,7 @@ typedef struct {
   __IO uint32_t ADCHTR;   /*!< ADC watchdog higher threshold register Address offset: 0x24 */
   __IO uint32_t ADCLTR;   /*!< ADC watchdog lower threshold register Address offset: 0x28 */
   __IO uint32_t ADCSQR1;   /*!< ADC regular sequence register Address offset: 0x28 */
-  __IO uint32_t ADCSQR1;   /*!< ADC regular sequence register Address offset: 0x30 */
+  __IO uint32_t ADCSQR2;   /*!< ADC regular sequence register Address offset: 0x30 */
   __IO uint32_t ADCSQR3;   /*!< ADC regular sequence register Address offset: 0x34 */
   __IO uint32_t ADCJSQR;   /*!< ADC injected sequence register Address offset: 0x38 */
   __IO uint32_t ADCJDR1;    /*!< ADC injected data register 1,  Address offset: 0x3C */
@@ -71,9 +71,9 @@ typedef struct {
   __IO uint32_t ADCJDR4;    /*!< ADC injected data register 4,  Address offset: 0x48 */
   __IO uint32_t ADCDR;    /*!< ADC regular data register,  Address offset: 0x4C */
   __IO uint32_t ADCCCR;    /*!< ADC common control register,  Address offset: 0x04 */
-} ADC_TypeDef;
+} ADC_2_TypeDef;
 
-#define ADC ((ADC_TypeDef *) ADC_BASE)
+#define ADC ((ADC_2_TypeDef *) ADC_BASE)
 
 ///////////////////////////////////////////////////////////////////////////////
 // Function prototypes

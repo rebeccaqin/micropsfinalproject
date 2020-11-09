@@ -3,7 +3,7 @@
 
 #include "STM32F401RE_GPIO.h"
 
-void pinMode(GPIO_TypeDef* GPIO_PORT_PTR, int pin, int function) {
+void pinMode(GPIO_2_TypeDef* GPIO_PORT_PTR, int pin, int function) {
     switch(function) {
         case GPIO_INPUT:
             GPIO_PORT_PTR->MODER &= ~(0b11 << 2*pin);
@@ -22,11 +22,11 @@ void pinMode(GPIO_TypeDef* GPIO_PORT_PTR, int pin, int function) {
     }
 }
 
-int digitalRead(GPIO_TypeDef* GPIO_PORT_PTR, int pin) {
+int digitalRead(GPIO_2_TypeDef* GPIO_PORT_PTR, int pin) {
     return ((GPIO_PORT_PTR->IDR) >> pin) & 1;
 }
 
-void digitalWrite(GPIO_TypeDef* GPIO_PORT_PTR, int pin, int val) {
+void digitalWrite(GPIO_2_TypeDef* GPIO_PORT_PTR, int pin, int val) {
     if(val == 1){
         GPIO_PORT_PTR->ODR |= (1 << pin);
     }
@@ -36,7 +36,7 @@ void digitalWrite(GPIO_TypeDef* GPIO_PORT_PTR, int pin, int val) {
     
 }
 
-void togglePin(GPIO_TypeDef* GPIO_PORT_PTR,int pin) {
+void togglePin(GPIO_2_TypeDef* GPIO_PORT_PTR,int pin) {
     // Use XOR to toggle
     GPIO_PORT_PTR->ODR ^= (1 << pin);
 }

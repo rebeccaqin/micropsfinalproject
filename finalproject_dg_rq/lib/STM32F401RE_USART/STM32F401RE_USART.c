@@ -6,8 +6,8 @@
 #include "STM32F401RE_RCC.h"
 #include "UARTRingBuffer.h"
 
-USART_TypeDef * id2Port(uint32_t USART_ID){
-    USART_TypeDef * USART;
+USART_2_TypeDef * id2Port(uint32_t USART_ID){
+    USART_2_TypeDef * USART;
     switch(USART_ID){
         case(USART1_ID) :
             USART = USART1;
@@ -21,14 +21,14 @@ USART_TypeDef * id2Port(uint32_t USART_ID){
     return USART;
 }
 
-USART_TypeDef * initUSART(uint8_t USART_ID, uint32_t baud_rate){
+USART_2_TypeDef * initUSART(uint8_t USART_ID, uint32_t baud_rate){
     RCC->AHB1ENR.GPIOAEN = 1; // Enable GPIO port A
 
-    USART_TypeDef * USART = id2Port(USART_ID);
+    USART_2_TypeDef * USART = id2Port(USART_ID);
 
     switch(USART_ID){
         case USART1_ID :
-            RCC->APB2ENR |= (1 << 4); // Set USART1EN
+            RCC->APB2ENR.USART1EN = 1; // Set USART1EN
 
             // Configure pin modes as ALT function
             pinMode(GPIOA, GPIO_PA9, GPIO_ALT); // TX
@@ -44,7 +44,8 @@ USART_TypeDef * initUSART(uint8_t USART_ID, uint32_t baud_rate){
             pinMode(GPIOA, GPIO_PA3, GPIO_ALT); // RX
 
             // Configure correct alternate functions (AF07)
-            GPIOA->AFRL |= (0b111 << 4*3) | (0b111 << 4*2);
+            GPIOA->AFRL.AFRL2 = 0b111;
+            GPIOA->AFRL.AFRL3 = 0b111;
             break;
     }
 
@@ -90,13 +91,13 @@ USART_TypeDef * initUSART(uint8_t USART_ID, uint32_t baud_rate){
     return USART;
 }
 
-void sendChar(USART_TypeDef * USART, uint8_t data){
+void sendChar(USART_2_TypeDef * USART, uint8_t data){
     while(!USART->SR.TXE);
     USART->DR.DR = data;
     while(!USART->SR.TC);
 }
 
-void sendString(USART_TypeDef * USART, uint8_t * charArray){
+void sendString(USART_2_TypeDef * USART, uint8_t * charArray){
 
     uint32_t i = 0;
     do{
@@ -106,7 +107,7 @@ void sendString(USART_TypeDef * USART, uint8_t * charArray){
     while(charArray[i] != 0);
 }
 
-uint8_t readChar(USART_TypeDef * USART){
+uint8_t readChar(USART_2_TypeDef * USART){
     if(is_data_available()){
         uint8_t data = read_char_buffer();
         return data;
@@ -116,7 +117,7 @@ uint8_t readChar(USART_TypeDef * USART){
 
 }
 
-void readString(USART_TypeDef * USART, uint8_t * charArray){
+void readString(USART_2_TypeDef * USART, uint8_t * charArray){
     uint32_t i = 0;
     do{
         charArray[i] = readChar(USART);

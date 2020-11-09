@@ -9,12 +9,12 @@
 // Include other peripheral libraries
 
 #include "STM32F401RE_GPIO.h"
-#include "STM32F401RE_FLASH.h"
 #include "STM32F401RE_RCC.h"
 #include "STM32F401RE_SPI.h"
 #include "STM32F401RE_TIM.h"
 #include "STM32F401RE_1WIRE.h"
 #include "STM32F401RE_USART.h"
+#include "STM32F401RE_ADC.h"
 
 
 #endif

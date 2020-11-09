@@ -1,3 +1,4 @@
+
 // STM32F401RE_GPIO.h
 // Header for GPIO functions
 
@@ -70,23 +71,23 @@ typedef struct {
     volatile uint32_t LCKR;    // GPIO Offset 0x1C
     volatile AFRL_bits AFRL;    // GPIO Offset 0x20
     volatile uint32_t AFRH;    // GPIO Offset 0x24
-} GPIO_TypeDef;
+} GPIO_2_TypeDef;
 
 // Pointers to GPIO-sized chunks of memory for each peripheral
-#define GPIOA ((GPIO_TypeDef *) GPIOA_BASE)
-#define GPIOB ((GPIO_TypeDef *) GPIOB_BASE)
-#define GPIOC ((GPIO_TypeDef *) GPIOC_BASE)
+#define GPIOA ((GPIO_2_TypeDef *) GPIOA_BASE)
+#define GPIOB ((GPIO_2_TypeDef *) GPIOB_BASE)
+#define GPIOC ((GPIO_2_TypeDef *) GPIOC_BASE)
 
 ///////////////////////////////////////////////////////////////////////////////
 // Function prototypes
 ///////////////////////////////////////////////////////////////////////////////
 
-void pinMode(GPIO_TypeDef *, int pin, int function);
+void pinMode(GPIO_2_TypeDef *, int pin, int function);
 
-int digitalRead(GPIO_TypeDef *, int pin);
+int digitalRead(GPIO_2_TypeDef *, int pin);
 
-void digitalWrite(GPIO_TypeDef *, int pin, int val);
+void digitalWrite(GPIO_2_TypeDef *, int pin, int val);
 
-void togglePin(GPIO_TypeDef *, int pin);
+void togglePin(GPIO_2_TypeDef *, int pin);
 
 #endif

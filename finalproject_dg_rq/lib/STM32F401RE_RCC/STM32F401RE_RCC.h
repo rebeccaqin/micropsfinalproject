@@ -145,9 +145,9 @@ typedef struct {
   __IO uint32_t     PLLI2SCFGR;    /*!< RCC PLLI2S configuration register,                           Address offset: 0x84 */
   uint32_t          RESERVED7[1];  /*!< Reserved, 0x88                                                                    */
   __IO uint32_t     DCKCFGR;       /*!< RCC Dedicated Clocks configuration register,                 Address offset: 0x8C */
-} RCC_TypeDef;
+} RCC_2_TypeDef;
 
-#define RCC ((RCC_TypeDef *) RCC_BASE)
+#define RCC ((RCC_2_TypeDef *) RCC_BASE)
 
 ///////////////////////////////////////////////////////////////////////////////
 // Function prototypes

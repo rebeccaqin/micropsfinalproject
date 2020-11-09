@@ -91,18 +91,18 @@ typedef struct {
     __IO CR2_bits   CR2;    // 0x10 Offset
     __IO uint32_t   CR3;    // 0x14 Offset
     __IO uint32_t   CGTPR;  // 0x18 Offset
-} USART_TypeDef;
+} USART_2_TypeDef;
 
-#define USART1 ((USART_TypeDef *) USART1_BASE)
-#define USART2 ((USART_TypeDef *) USART2_BASE)
+#define USART1 ((USART_2_TypeDef *) USART1_BASE)
+#define USART2 ((USART_2_TypeDef *) USART2_BASE)
 
 ///////////////////////////////////////////////////////////////////////////////
 // Function prototypes
 ///////////////////////////////////////////////////////////////////////////////
 
-USART_TypeDef * initUSART(uint8_t USART_ID, uint32_t baud_rate);
-void sendChar(USART_TypeDef * USART, uint8_t data);
-void sendString(USART_TypeDef * USART, uint8_t * charArray);
-void receiveString(USART_TypeDef * USART, uint8_t * charArray);
+USART_2_TypeDef * initUSART(uint8_t USART_ID, uint32_t baud_rate);
+void sendChar(USART_2_TypeDef * USART, uint8_t data);
+void sendString(USART_2_TypeDef * USART, uint8_t * charArray);
+void receiveString(USART_2_TypeDef * USART, uint8_t * charArray);
 
 #endif

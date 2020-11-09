@@ -44,7 +44,7 @@ void flush_buffer(void){
     _rx_buffer->tail = 0;
 }
 
-void usart_ISR(USART_TypeDef * USART){
+void usart_ISR(USART_2_TypeDef * USART){
     if(USART->SR.RXNE && USART->CR1.RXNEIE){
         uint8_t c = USART->DR.DR;
         store_char(c, _rx_buffer);

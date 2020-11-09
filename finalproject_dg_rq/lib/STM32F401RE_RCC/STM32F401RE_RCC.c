@@ -40,11 +40,11 @@ void configureClock(){
     while(!RCC->CR.HSERDY);
     
     // Configure and turn on PLL for 84 MHz
-    configurePLL();
+    // configurePLL();
 
-    // Select PLL as clock source
-    RCC->CFGR.SW = SW_PLL;
-    while(RCC->CFGR.SWS != 0b10);
+    // Select HSE as clock source
+    RCC->CFGR.SW = SW_HSE;
+    while(RCC->CFGR.SWS != 0b01);
 
-    SystemCoreClock = 84000000;
+    SystemCoreClock = 8000000;
 }

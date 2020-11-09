@@ -81,10 +81,10 @@ typedef struct {
   __IO uint32_t TXCRCR;     /*!< SPI TX CRC register (not used in I2S mode),         Address offset: 0x18 */
   __IO uint32_t I2SCFGR;    /*!< SPI_I2S configuration register,                     Address offset: 0x1C */
   __IO uint32_t I2SPR;      /*!< SPI_I2S prescaler register,                         Address offset: 0x20 */
-} SPI_TypeDef;
+} SPI_2_TypeDef;
 
 // Pointers to GPIO-sized chunks of memory for each peripheral
-#define SPI1 ((SPI_TypeDef *) SPI1_BASE)
+#define SPI1 ((SPI_2_TypeDef *) SPI1_BASE)
 
 ///////////////////////////////////////////////////////////////////////////////
 // Function prototypes

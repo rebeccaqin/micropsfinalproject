@@ -53,25 +53,27 @@ typedef struct
   __IO uint32_t DCR;         /*!< TIM DMA control register,            Address offset: 0x48 */
   __IO uint32_t DMAR;        /*!< TIM DMA address for full transfer,   Address offset: 0x4C */
   __IO uint32_t OR;          /*!< TIM option register,                 Address offset: 0x50 */
-} TIM_TypeDef;
+} TIM_2_TypeDef;
+
+
 
 // Pointers to appropriately-sized chunks of memory for each peripheral
-#define TIM1 ((TIM_TypeDef *) TIM1_BASE)
-#define TIM2 ((TIM_TypeDef *) TIM2_BASE)
-#define TIM3 ((TIM_TypeDef *) TIM3_BASE)
-#define TIM4 ((TIM_TypeDef *) TIM4_BASE)
-#define TIM5 ((TIM_TypeDef *) TIM5_BASE)
-#define TIM9 ((TIM_TypeDef *) TIM9_BASE)
-#define TIM10 ((TIM_TypeDef *) TIM10_BASE)
-#define TIM11 ((TIM_TypeDef *) TIM11_BASE)
+#define TIM1 ((TIM_2_TypeDef *) TIM1_BASE)
+#define TIM2 ((TIM_2_TypeDef *) TIM2_BASE)
+#define TIM3 ((TIM_2_TypeDef *) TIM3_BASE)
+#define TIM4 ((TIM_2_TypeDef *) TIM4_BASE)
+#define TIM5 ((TIM_2_TypeDef *) TIM5_BASE)
+#define TIM9 ((TIM_2_TypeDef *) TIM9_BASE)
+#define TIM10 ((TIM_2_TypeDef *) TIM10_BASE)
+#define TIM11 ((TIM_2_TypeDef *) TIM11_BASE)
 
 ///////////////////////////////////////////////////////////////////////////////
 // Function prototypes
 ///////////////////////////////////////////////////////////////////////////////
 
-void initTIM(TIM_TypeDef * TIMx);
-void delay_millis(TIM_TypeDef * TIMx, uint32_t ms);
-void delay_micros(TIM_TypeDef * TIMx, uint32_t us);
+void initTIM(TIM_2_TypeDef * TIMx);
+void delay_millis(TIM_2_TypeDef * TIMx, uint32_t ms);
+void delay_micros(TIM_2_TypeDef * TIMx, uint32_t us);
 void initTIM2();
 
 #endif
