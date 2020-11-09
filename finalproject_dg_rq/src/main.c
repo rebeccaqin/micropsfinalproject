@@ -73,6 +73,7 @@ void TIM2_IRQHandler(void) {
         ADC->ADCCR2.ADON = 0;
         digitalWrite(GPIOA, LED_PIN, GPIO_LOW);
         recording = 0;
+        count = 0;
     }
 }
 
