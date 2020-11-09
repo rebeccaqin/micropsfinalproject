@@ -22,7 +22,7 @@
 #define NVIC_ISER0 ((uint32_t *) 0xE000E100UL)
 #define NVIC_ISER1 ((uint32_t *) 0xE000E104UL)
 #define SYSCFG_EXTICR4 ((uint32_t *) (0x40013800UL + 0x14UL))
-#define DMA_STREAM DMA1_Stream6
+#define DMA_STREAM DMA2_Stream0
 
 #define NSS_PIN GPIO_PA1
 #define SPI1CLK_PIN GPIO_PA5
