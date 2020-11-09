@@ -72,7 +72,7 @@ void TIM2_IRQHandler(void) {
         DMA_STREAM->CR   &= ~(DMA_SxCR_EN);
         ADC->ADCCR2.ADON = 0;
         digitalWrite(GPIOA, LED_PIN, GPIO_LOW);
-        recording = 0;
+        // recording = 0;
         count = 0;
     }
 }

@@ -12,8 +12,8 @@ void configureADC(){
     ADC->ADCSQR3 |= 0b00000;
     // set prescalar to divide by 8 to set freq of clock to ADC
     ADC->ADCCCR |= (0b11 << 16);
-    // set continuous conversion mode
-    ADC->ADCCR2.CONT = 1;
+    // set single conversion mode
+    ADC->ADCCR2.CONT = 0;
     // enable SWSTART to start 
     ADC->ADCCR2.SWSTART = 1;
 }
