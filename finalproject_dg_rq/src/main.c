@@ -53,6 +53,7 @@ void init_DMA(){
  * TODO: fix this with updated DMA stream
  */
 int count = 0;
+int recording = 0;
 void TIM2_IRQHandler(void) {
     // Clear update interrupt flag
     TIM2->SR &= ~(TIM_SR_UIF);
@@ -72,7 +73,7 @@ void TIM2_IRQHandler(void) {
         DMA_STREAM->CR   &= ~(DMA_SxCR_EN);
         ADC->ADCCR2.ADON = 0;
         digitalWrite(GPIOA, LED_PIN, GPIO_LOW);
-        // recording = 0;
+        recording = 0;
         count = 0;
     }
 }
@@ -87,7 +88,7 @@ void USART1_IRQHandler(){
 /** Map Button IRQ handler to our custom ISR
  * TODO: fix this so it handles recording 
  */
-int recording = 0;
+
 void EXTI15_10_IRQHandler(void){
     // Check that the button EXTI_13 was what triggered our interrupt
     if (EXTI->PR & (1 << BUTTON_PIN)){
