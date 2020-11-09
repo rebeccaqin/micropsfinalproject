@@ -65,6 +65,7 @@ void TIM2_IRQHandler(void) {
         DMA_STREAM->NDTR  = (uint16_t) 1;
         // Re-enable DMA stream.
         DMA_STREAM->CR   |= DMA_SxCR_EN;
+        ++count;
     }
     else {
         TIM2->CR1 &= ~(0b1);
