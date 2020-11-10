@@ -128,7 +128,7 @@ int main(void) {
     // Initialize timers
     RCC->APB1ENR |= (RCC_APB1ENR_TIM2EN | RCC_APB1ENR_TIM5EN); // TIM2_EN
     initTIM(DELAY_TIM);
-
+    initTIM(TIM3);
     // Enable interrupts globally
     __enable_irq();
 
@@ -144,10 +144,11 @@ int main(void) {
     EXTI->IMR |= 1 << 13; // PC13 is EXTI13
     EXTI->RTSR &= ~(1 << 13); // PC13 is EXTI13
     EXTI->FTSR |= 1 << 13; // PC13 is EXTI13
-    __NVIC_EnableIRQ(EXTI15_10_IRQn); 
+    *NVIC_ISER1 |= 1 << 8;
+    //__NVIC_EnableIRQ(EXTI15_10_IRQn); 
     
     while(1){
-        
+        delay_millis(TIM3, 200);
     }
     /*
     // Configure ESP and Terminal UARTs
