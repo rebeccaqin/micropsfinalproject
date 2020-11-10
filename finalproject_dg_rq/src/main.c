@@ -59,13 +59,7 @@ void TIM2_IRQHandler(void) {
     TIM2->SR &= ~(TIM_SR_UIF);
     
     if (count < VOLTAGE_ARRAY_SIZE) {
-         DMA1->HIFCR = (DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0 | DMA_LIFCR_CFEIF0);
-        // Dest: Address of the character array buffer incremented in memory.
-        DMA_STREAM->M0AR  = (uint32_t) &(VOLTAGE_ARRAY[count]);
-        // Reset number of bytes to transmit
-        DMA_STREAM->NDTR  = (uint16_t) 1;
-        // Re-enable DMA stream.
-        DMA_STREAM->CR   |= DMA_SxCR_EN;
+        ADC->ADCCR2.ADON = 1;
         ++count;
     }
     else {
@@ -78,6 +72,18 @@ void TIM2_IRQHandler(void) {
     }
 }
 
+void ADC_IRQHandler(void){
+    // Clear Stream 0 DMA flags
+    DMA1->HIFCR = (DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0 | DMA_LIFCR_CFEIF0);
+    DMA2->HIFCR = (DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0 | DMA_LIFCR_CFEIF0);
+    // Dest: Address of the character array buffer incremented in memory.
+    DMA_STREAM->M0AR  = (uint32_t) &(VOLTAGE_ARRAY[count]);
+    // Reset number of bytes to transmit
+    DMA_STREAM->NDTR  = (uint16_t) 1;
+    // Re-enable DMA stream.
+    DMA_STREAM->CR   |= DMA_SxCR_EN;
+    init_DMA();
+}
 /** Map USART1 IRQ handler to our custom ISR
  */
 void USART1_IRQHandler(){
@@ -86,7 +92,6 @@ void USART1_IRQHandler(){
 }
 
 /** Map Button IRQ handler to our custom ISR
- * TODO: fix this so it handles recording 
  */
 
 void EXTI15_10_IRQHandler(void){
@@ -95,18 +100,14 @@ void EXTI15_10_IRQHandler(void){
         // If so, clear the interrupt
         EXTI->PR |= (1 << BUTTON_PIN);
         if (recording) {
-            TIM2->CR1 &= ~(0b1);
-            DMA_STREAM->CR   &= ~(DMA_SxCR_EN);
             ADC->ADCCR2.ADON = 0;
+            DMA_STREAM->CR   &= ~(DMA_SxCR_EN);
+            
             digitalWrite(GPIOA, LED_PIN, GPIO_LOW);
             recording = 0;
         }
         else {
             initTIM2();
-            // Clear Stream 0 DMA flags
-            DMA1->HIFCR = (DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0 | DMA_LIFCR_CFEIF0);
-            ADC->ADCCR2.ADON = 1;
-            init_DMA();
             digitalWrite(GPIOA, LED_PIN, GPIO_HIGH);
             recording = 1;
         }
@@ -144,8 +145,8 @@ int main(void) {
     EXTI->IMR |= 1 << 13; // PC13 is EXTI13
     EXTI->RTSR &= ~(1 << 13); // PC13 is EXTI13
     EXTI->FTSR |= 1 << 13; // PC13 is EXTI13
-    __NVIC_EnableIRQ(ADC_IRQn);
     __NVIC_EnableIRQ(EXTI15_10_IRQn); 
+    __NVIC_EnableIRQ(ADC_IRQn); // enable ADC interrupt
     
     while(1){
         delay_millis(TIM3, 200);
