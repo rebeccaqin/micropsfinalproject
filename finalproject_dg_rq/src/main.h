@@ -37,8 +37,6 @@
 #define REQ_RECORDING_STOP 2
 #define REQ_PLAY 3
 
-// LED pin
-#define LED_PIN 5
 
 #define ESP_USART_ID USART1_ID
 #define TERM_USART_ID USART2_ID
