@@ -4,7 +4,8 @@
 #include "STM32F401RE_ADC.h"
 
 void configureADC(){
-    // set clocks
+    // turn on ADC
+    ADC->ADCCR2.ADON = 1;
     // set the number of conversions in the sequence to 1
     ADC->ADCSQR1 |= (0b0000 << 20);
     // set the channel of the ADC selected as the first conversion
