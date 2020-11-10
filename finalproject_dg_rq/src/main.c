@@ -59,7 +59,7 @@ void TIM2_IRQHandler(void) {
     TIM2->SR &= ~(TIM_SR_UIF);
     
     if (count < VOLTAGE_ARRAY_SIZE) {
-         DMA1->HIFCR = (DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0 | DMA_LIFCR_CFEIF0);
+        DMA1->HIFCR = (DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0 | DMA_LIFCR_CFEIF0);
         // Dest: Address of the character array buffer incremented in memory.
         DMA_STREAM->M0AR  = (uint32_t) &(VOLTAGE_ARRAY[count]);
         // Reset number of bytes to transmit
