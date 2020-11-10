@@ -14,6 +14,8 @@ void configureADC(){
     ADC->ADCCCR |= (0b11 << 16);
     // set single conversion mode
     ADC->ADCCR2.CONT = 0;
+    //enable interupts after each ADC conversion to allow transfer from DR to DMA
+    ADC->CR1 |= (1 << 5);
     // enable SWSTART to start 
     ADC->ADCCR2.SWSTART = 1;
 }

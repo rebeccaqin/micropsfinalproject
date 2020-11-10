@@ -11,8 +11,8 @@
 #include "UARTRingBuffer.h"
 #include "esp.h"
 
-size_t VOLTAGE_ARRAY_SIZE = 5000;
-uint16_t VOLTAGE_ARRAY[5000]; 
+size_t VOLTAGE_ARRAY_SIZE = 50;
+uint16_t VOLTAGE_ARRAY[50]; 
 
 void init_DMA(){
     // DMA2 configuration (stream 6 / channel 4).
