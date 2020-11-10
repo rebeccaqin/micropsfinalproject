@@ -144,8 +144,8 @@ int main(void) {
     EXTI->IMR |= 1 << 13; // PC13 is EXTI13
     EXTI->RTSR &= ~(1 << 13); // PC13 is EXTI13
     EXTI->FTSR |= 1 << 13; // PC13 is EXTI13
-    *NVIC_ISER1 |= 1 << 8;
-    //__NVIC_EnableIRQ(EXTI15_10_IRQn); 
+    __NVIC_EnableIRQ(ADC_IRQn);
+    __NVIC_EnableIRQ(EXTI15_10_IRQn); 
     
     while(1){
         delay_millis(TIM3, 200);
