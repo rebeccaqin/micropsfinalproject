@@ -105,7 +105,7 @@ void EXTI15_10_IRQHandler(void){
             initTIM2();
             // Clear Stream 0 DMA flags
             DMA1->HIFCR = (DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0 | DMA_LIFCR_CFEIF0);
-            ADC->ADCCR2.ADON = 1;
+            configureADC();
             init_DMA();
             digitalWrite(GPIOA, LED_PIN, GPIO_HIGH);
             recording = 1;
