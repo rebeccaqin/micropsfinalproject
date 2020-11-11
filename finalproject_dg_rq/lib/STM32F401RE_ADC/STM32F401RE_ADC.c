@@ -11,12 +11,14 @@ void configureADC(){
     // set the channel of the ADC selected as the first conversion
     // TODO: DMA2 channel 0 stream 0 
     ADC->ADCSQR3 |= 0b00000;
-    // set prescalar to divide by 8 to set freq of clock to ADC
-    ADC->ADCCCR |= (0b11 << 16);
     // set single conversion mode
     ADC->ADCCR2.CONT = 0;
     //enable interupts after each ADC conversion to allow transfer from DR to DMA
     ADC->ADCCR1 |= (1 << 5);
+    // turn on end of conversion selection
+    ADC->ADCCR2.EOCS = 1;
+    //sampling time for ADC TRY THIS LATER
+    // ADC->ADCSMPR2 |= 0b111;
     // enable SWSTART to start 
     ADC->ADCCR2.SWSTART = 1;
 }
