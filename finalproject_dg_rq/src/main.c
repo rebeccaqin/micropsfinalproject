@@ -34,6 +34,7 @@ void EXTI15_10_IRQHandler(void){
             recording = 0;
         }
         else {
+            count = 0;
             initTIM2();
             digitalWrite(GPIOA, LED_PIN, GPIO_HIGH);
             recording = 1;
@@ -98,7 +99,6 @@ void TIM2_IRQHandler(void) {
         ADC->ADCCR2.ADON = 0;
         digitalWrite(GPIOA, LED_PIN, GPIO_LOW);
         recording = 0;
-        count = 0;
     }
 }
 
