@@ -35,6 +35,7 @@ void EXTI15_10_IRQHandler(void){
         }
         else {
             count = 0;
+            init_DMA();
             initTIM2();
             digitalWrite(GPIOA, LED_PIN, GPIO_HIGH);
             recording = 1;
@@ -46,7 +47,7 @@ void EXTI15_10_IRQHandler(void){
  * TIM2 handler turns on the ADC to start conversions
  * if the buffer is full, turn off recording (timer, ADC, DMA)
  */
-void init_DMA(int count){
+void init_DMA(){
     // DMA2 configuration (stream 6 / channel 4).
     // SxCR register:
     // - Memory-to-peripheral
@@ -74,14 +75,14 @@ void init_DMA(int count){
     
     // Set DMA source and destination addresses.
     // Dest: Address of the character array buffer in memory.
-    DMA2_Stream0->M0AR = (uint32_t) &(VOLTAGE_ARRAY[count]);
+    DMA2_Stream0->M0AR = (uint32_t) &(VOLTAGE_ARRAY);
     // Source: ADC data register
     DMA2_Stream0->PAR  = (uint32_t) &(ADC->ADCDR);
     // Set DMA data transfer length (# of samples).
-    DMA2_Stream0->NDTR = (uint16_t) 1;
+    DMA2_Stream0->NDTR = (uint16_t) VOLTAGE_ARRAY_SIZE;
 
     // Enable DMA stream.
-    DMA2_Stream0->CR   |= DMA_SxCR_EN;
+    DMA2_Stream0->CR |= DMA_SxCR_EN;
 }
 
 void TIM2_IRQHandler(void) {
@@ -89,7 +90,6 @@ void TIM2_IRQHandler(void) {
     TIM2->SR &= ~(TIM_SR_UIF);
     
     if (count < VOLTAGE_ARRAY_SIZE) {
-        init_DMA(count);
         configureADC();
         ++count;
     }
