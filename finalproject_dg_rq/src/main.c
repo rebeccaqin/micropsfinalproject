@@ -11,8 +11,8 @@
 #include "UARTRingBuffer.h"
 #include "esp.h"
 
-size_t VOLTAGE_ARRAY_SIZE = 2000;
-uint16_t VOLTAGE_ARRAY[2000]; 
+size_t VOLTAGE_ARRAY_SIZE = 45000;
+uint16_t VOLTAGE_ARRAY[45000]; 
 int count = 0;
 int recording = 0;
 int play_index = 0;
