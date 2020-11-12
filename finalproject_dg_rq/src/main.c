@@ -45,25 +45,7 @@ void EXTI15_10_IRQHandler(void){
  * TIM2 handler turns on the ADC to start conversions
  * if the buffer is full, turn off recording (timer, ADC, DMA)
  */
-
-void TIM2_IRQHandler(void) {
-    // Clear update interrupt flag
-    TIM2->SR &= ~(TIM_SR_UIF);
-    
-    if (count < VOLTAGE_ARRAY_SIZE) {
-        configureADC();
-    }
-    else {
-        TIM2->CR1 &= ~(0b1);
-        DMA_STREAM->CR   &= ~(DMA_SxCR_EN);
-        ADC->ADCCR2.ADON = 0;
-        digitalWrite(GPIOA, LED_PIN, GPIO_LOW);
-        recording = 0;
-        count = 0;
-    }
-}
-
-void init_DMA(){
+void init_DMA(int count){
     // DMA2 configuration (stream 6 / channel 4).
     // SxCR register:
     // - Memory-to-peripheral
@@ -71,6 +53,9 @@ void init_DMA(){
     // - Increment memory ptr, don't increment periph ptr.
     // - 8-bit data size for both source and destination.
     // - High priority (2/3).
+    
+    // Clear Stream 0 DMA flags
+    DMA2->LIFCR = (DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0 | DMA_LIFCR_CFEIF0);
     
     // Reset DMA2 Stream 0
     DMA2_Stream0->CR &= ~(DMA_SxCR_CHSEL |
@@ -88,7 +73,7 @@ void init_DMA(){
     
     // Set DMA source and destination addresses.
     // Dest: Address of the character array buffer in memory.
-    DMA2_Stream0->M0AR = (uint32_t) &VOLTAGE_ARRAY;
+    DMA2_Stream0->M0AR = (uint32_t) &(VOLTAGE_ARRAY[count]);
     // Source: ADC data register
     DMA2_Stream0->PAR  = (uint32_t) &(ADC->ADCDR);
     // Set DMA data transfer length (# of samples).
@@ -98,26 +83,25 @@ void init_DMA(){
     DMA2_Stream0->CR   |= DMA_SxCR_EN;
 }
 
-/** Map ADC IRQ handler to our custom ISR
- * ADC handler turns on the DMA when the the ADC indicates that it's finished converting
- */
-void ADC_IRQHandler(void){
-    if (count == 0) {
-        init_DMA();
+void TIM2_IRQHandler(void) {
+    // Clear update interrupt flag
+    TIM2->SR &= ~(TIM_SR_UIF);
+    
+    if (count < VOLTAGE_ARRAY_SIZE) {
+        init_DMA(count);
+        configureADC();
+        ++count;
     }
     else {
-        // Clear Stream 0 DMA flags
-        DMA2->LIFCR = (DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0 | DMA_LIFCR_CFEIF0);
-        // Dest: Address of the character array buffer incremented in memory.
-        DMA_STREAM->M0AR  = (uint32_t) &(VOLTAGE_ARRAY[count]);
-        // Reset number of bytes to transmit
-        DMA_STREAM->NDTR  = (uint16_t) 1;
-        // Re-enable DMA stream.
-        DMA_STREAM->CR |= DMA_SxCR_EN; 
+        TIM2->CR1 &= ~(0b1);
+        DMA_STREAM->CR   &= ~(DMA_SxCR_EN);
+        ADC->ADCCR2.ADON = 0;
+        digitalWrite(GPIOA, LED_PIN, GPIO_LOW);
+        recording = 0;
+        count = 0;
     }
-    ++count;
-    while(VOLTAGE_ARRAY[0] == 0);
 }
+
 
 /** Map USART1 IRQ handler to our custom ISR
  */
@@ -148,6 +132,7 @@ int main(void) {
     // set GPIO PA 8 to LED pin
     pinMode(GPIOA, LED_PIN, GPIO_OUTPUT);
     pinMode(GPIOC, BUTTON_PIN, GPIO_INPUT);
+    pinMode(GPIOA, 0, GPIO_ANALOG);
     *SYSCFG_EXTICR4 |= 0b00100000; // Set EXTICR4 for PC13 to 2
     // Configure interrupt for falling edge of GPIO PC13
     // 1. Configure mask bit
@@ -158,8 +143,7 @@ int main(void) {
     EXTI->RTSR &= ~(1 << 13); // PC13 is EXTI13
     EXTI->FTSR |= 1 << 13; // PC13 is EXTI13
     __NVIC_EnableIRQ(EXTI15_10_IRQn); // enable button interrupt
-    __NVIC_EnableIRQ(ADC_IRQn); // enable ADC interrupt
-    configureADC();
+    //__NVIC_EnableIRQ(ADC_IRQn); // enable ADC interrupt
     while(1){
         delay_millis(TIM3, 200);
     }

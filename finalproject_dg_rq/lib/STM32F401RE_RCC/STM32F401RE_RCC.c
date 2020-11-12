@@ -30,7 +30,6 @@ void configureClock(){
     1. Set APB2 (high-speed bus) prescaler to no division
     2. Set APB1 (low-speed bus) to divide by 2.
     */
-
     RCC->CFGR.PPRE2 = 0b000;
     RCC->CFGR.PPRE1 = 0b100;
     
