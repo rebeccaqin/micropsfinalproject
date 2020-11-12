@@ -78,7 +78,7 @@ void init_DMA(int count){
     // Source: ADC data register
     DMA2_Stream0->PAR  = (uint32_t) &(ADC->ADCDR);
     // Set DMA data transfer length (# of samples).
-    DMA2_Stream0->NDTR = (uint16_t) 1;
+    //DMA2_Stream0->NDTR = (uint16_t) 1;
 
     // Enable DMA stream.
     DMA2_Stream0->CR   |= DMA_SxCR_EN;
