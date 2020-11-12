@@ -29,7 +29,6 @@ void spiInit(uint32_t br, uint32_t cpol, uint32_t cpha) {
     // Initially assigning SPI pins
     pinMode(GPIOA, 5, GPIO_ALT); // PA5, Arduino D13, SPI1_SCK
     pinMode(GPIOA, 7, GPIO_ALT); // PA7, Arduino D11, SPI1_MOSI
-    pinMode(GPIOA, 4, GPIO_ALT); // PA4, Arduino A2, SPI1_NSS
     pinMode(GPIOA, 1, GPIO_OUTPUT); // PA1, Arduino D10, Manual CS
 
     // Set to AF05 for SPI alternate functions
@@ -57,19 +56,25 @@ void spiInit(uint32_t br, uint32_t cpol, uint32_t cpha) {
 //     return (char) (SPI->SPI_RDR.RD); // Return received character
 // }
 
+
+
 /* Transmits a short (2 bytes) over SPI and returns the received short.
  *    -- send: the short to send over SPI
  *    -- return: the short received over SPI */
-uint16_t spiSendReceive16(uint16_t send) {
-    digitalWrite(GPIOB, 6, 0);
+uint16_t spiSendReceive12(uint16_t send) {
+    while(SPI1->SR.TXE != 0b1){} // wait until the transmission buffer is empty
+
+    digitalWrite(GPIOA, 1, 0);
     SPI1->CR1.SPE = 1;
+    // apply a mask so only the first 12 
+    send = (0b0001 << 12) | (send & 0xFFF);
     SPI1->DR.DR = send;
     
     while(!(SPI1->SR.RXNE));
     uint16_t rec = SPI1->DR.DR;
     
     SPI1->CR1.SPE = 0;
-    digitalWrite(GPIOB, 6, 1);
+    digitalWrite(GPIOA, 1, 1);
 
     return rec;
 }

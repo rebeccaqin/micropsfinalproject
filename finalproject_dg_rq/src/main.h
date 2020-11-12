@@ -44,7 +44,7 @@
 #define ADC_TIM TIM2
 #define CMD_DELAY_MS 40
 #define BUFFER_SIZE 2048
-
+#define PLAY_TIM TIM4
 
 #define __NVIC_PRIO_BITS          4U       /*!< STM32F4XX uses 4 Bits for the Priority Levels */
 

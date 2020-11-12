@@ -35,20 +35,19 @@ void delay_micros(TIM_2_TypeDef * TIMx, uint32_t us){
 }
 
 void initTIM2() {
-    initTIM(TIM2);
     //enable all registers
     TIM2->EGR |= 1;
     
     //set PWM frequency to 75000 clock cycles
     // if we need duty cycle: set TIM2->CCR1
     // 15 cycles per ADC conversion and buffer size 5000
-    TIM2->ARR = 1600;
-    
+    TIM2->ARR = 160;
+    /*
     // Enable trigger output on timer update events.
     TIM2->CR2 &= ~(TIM_CR2_MMS);
     TIM2->CR2 |=  (0x2 << TIM_CR2_MMS_Pos);
     TIM2->CR2 |= (TIM_CR2_CCDS); // Set DMA request when update event occurs
-    
+    */
     // Configure interrupt enable on update event
     TIM2->DIER |= (TIM_DIER_UIE);
     NVIC_EnableIRQ(TIM2_IRQn);

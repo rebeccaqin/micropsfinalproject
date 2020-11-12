@@ -11,11 +11,29 @@
 #include "UARTRingBuffer.h"
 #include "esp.h"
 
-size_t VOLTAGE_ARRAY_SIZE = 50;
-uint16_t VOLTAGE_ARRAY[50]; 
+size_t VOLTAGE_ARRAY_SIZE = 2000;
+uint16_t VOLTAGE_ARRAY[2000]; 
 int count = 0;
 int recording = 0;
+int play_index = 0;
 
+void play() {
+    // Configure interrupt enable on update event
+    TIM4->EGR |= 1;
+    TIM4->DIER |= (TIM_DIER_UIE);
+    TIM4->ARR = 160; 
+    NVIC_EnableIRQ(TIM4_IRQn);
+    //enable counter
+    TIM4->CR1 |= 1;
+}
+
+void TIM4_IRQHandler(void) {
+    // Clear update interrupt flag
+    TIM4->SR &= ~(TIM_SR_UIF);
+    if (play_index == VOLTAGE_ARRAY_SIZE) play_index = 0;
+    spiSendReceive12(VOLTAGE_ARRAY[play_index]);
+    ++play_index;
+}
 /** Map Button IRQ handler to our custom ISR
  * Button turns on the TIM2 for interrupts to sample at 10kHz
  * If recording, it turns off TIM2, DMA, and ADC to stop recording
@@ -31,10 +49,10 @@ void EXTI15_10_IRQHandler(void){
             DMA_STREAM->CR   &= ~(DMA_SxCR_EN);
             ADC->ADCCR2.ADON = 0;
             digitalWrite(GPIOA, LED_PIN, GPIO_LOW);
-            count = 0;
             recording = 0;
         }
         else {
+            count = 0;
             initTIM2();
             digitalWrite(GPIOA, LED_PIN, GPIO_HIGH);
             recording = 1;
@@ -60,7 +78,6 @@ void TIM2_IRQHandler(void) {
         ADC->ADCCR2.ADON = 0;
         digitalWrite(GPIOA, LED_PIN, GPIO_LOW);
         recording = 0;
-        count = 0;
     }
 }
 
@@ -140,10 +157,10 @@ int main(void) {
 
     // Enable and configure ADC1 and SYSCFG and SPI1
     RCC->APB2ENR |= (RCC_APB2ENR_ADC1EN | RCC_APB2ENR_SYSCFGEN | RCC_APB2ENR_SPI1EN);
-    spiInit(0, 1, 0);
+    spiInit(0, 1, 1);
     
     // Initialize timers
-    RCC->APB1ENR |= (RCC_APB1ENR_TIM2EN | RCC_APB1ENR_TIM5EN); // TIM2_EN
+    RCC->APB1ENR |= (RCC_APB1ENR_TIM2EN | RCC_APB1ENR_TIM5EN | RCC_APB1ENR_TIM3EN | RCC_APB1ENR_TIM4EN); // TIM2_EN
     initTIM(DELAY_TIM);
     initTIM(TIM3);
     // Enable interrupts globally
@@ -164,9 +181,13 @@ int main(void) {
     EXTI->FTSR |= 1 << 13; // PC13 is EXTI13
     __NVIC_EnableIRQ(EXTI15_10_IRQn); // enable button interrupt
     __NVIC_EnableIRQ(ADC_IRQn); // enable ADC interrupt
-
+    int playing = 0;
     while(1){
-        delay_millis(TIM3, 200);
+       // delay_millis(TIM3, 20);
+        if (count == VOLTAGE_ARRAY_SIZE && !playing) {
+            play();
+            playing = 1;
+        }
     }
     /*
     // Configure ESP and Terminal UARTs

@@ -114,6 +114,6 @@ uint8_t spiSendReceive(uint8_t send);
 /* Transmits a short (2 bytes) over SPI and returns the received short.
  *    -- send: the short to send over SPI
  *    -- return: the short received over SPI */
-uint16_t spiSendReceive16(uint16_t send);
+uint16_t spiSendReceive12(uint16_t send);
 
 #endif
