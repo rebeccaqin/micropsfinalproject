@@ -89,6 +89,8 @@ void TIM2_IRQHandler(void) {
     TIM2->SR &= ~(TIM_SR_UIF);
     
     if (count < VOLTAGE_ARRAY_SIZE) {
+        // Disable DMA stream.
+        DMA2_Stream0->CR   &= ~(DMA_SxCR_EN);
         init_DMA(count);
         configureADC();
         ++count;
