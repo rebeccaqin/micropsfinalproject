@@ -38,14 +38,11 @@ void initTIM2() {
     initTIM(TIM2);
     //enable all registers
     TIM2->EGR |= 1;
-  
-    //set one pulse mode by setting OPM bit
-    TIM2->CR1 |= (1 << 3);
     
     //set PWM frequency to 75000 clock cycles
     // if we need duty cycle: set TIM2->CCR1
     // 15 cycles per ADC conversion and buffer size 5000
-    TIM2->ARR = 75000;
+    TIM2->ARR = 1600;
     
     // Enable trigger output on timer update events.
     TIM2->CR2 &= ~(TIM_CR2_MMS);

@@ -31,6 +31,7 @@ void EXTI15_10_IRQHandler(void){
             DMA_STREAM->CR   &= ~(DMA_SxCR_EN);
             ADC->ADCCR2.ADON = 0;
             digitalWrite(GPIOA, LED_PIN, GPIO_LOW);
+            count = 0;
             recording = 0;
         }
         else {
@@ -102,6 +103,9 @@ void init_DMA(){
  * ADC handler turns on the DMA when the the ADC indicates that it's finished converting
  */
 void ADC_IRQHandler(void){
+    ADC->ADCSR &= ~(0b10);// clear interrupt
+    VOLTAGE_ARRAY[count] = (uint16_t) ADC->ADCDR;
+    /*
     if (count == 0) {
         init_DMA();
     }
@@ -115,8 +119,8 @@ void ADC_IRQHandler(void){
         // Re-enable DMA stream.
         DMA_STREAM->CR |= DMA_SxCR_EN; 
     }
+    */
     ++count;
-    while(VOLTAGE_ARRAY[0] == 0);
 }
 
 /** Map USART1 IRQ handler to our custom ISR
@@ -148,6 +152,7 @@ int main(void) {
     // set GPIO PA 8 to LED pin
     pinMode(GPIOA, LED_PIN, GPIO_OUTPUT);
     pinMode(GPIOC, BUTTON_PIN, GPIO_INPUT);
+    pinMode(GPIOA, GPIO_PA0, GPIO_ANALOG);
     *SYSCFG_EXTICR4 |= 0b00100000; // Set EXTICR4 for PC13 to 2
     // Configure interrupt for falling edge of GPIO PC13
     // 1. Configure mask bit
@@ -159,7 +164,7 @@ int main(void) {
     EXTI->FTSR |= 1 << 13; // PC13 is EXTI13
     __NVIC_EnableIRQ(EXTI15_10_IRQn); // enable button interrupt
     __NVIC_EnableIRQ(ADC_IRQn); // enable ADC interrupt
-    configureADC();
+
     while(1){
         delay_millis(TIM3, 200);
     }

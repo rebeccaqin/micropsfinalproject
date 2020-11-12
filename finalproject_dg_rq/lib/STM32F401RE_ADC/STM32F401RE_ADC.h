@@ -19,16 +19,6 @@
 // Bitfield structs
 ///////////////////////////////////////////////////////////////////////////////
 
-typedef struct {
-  __IO uint32_t LATENCY :4;
-  __IO uint32_t         :4;
-  __IO uint32_t PRFTEN  :1;
-  __IO uint32_t ICEN    :1;
-  __IO uint32_t DCEN    :1;
-  __IO uint32_t ICRST   :1;
-  __IO uint32_t DCRST   :1;
-  __IO uint32_t         :19;
-} ADCSR_bits;
 
 typedef struct {
   __IO uint32_t ADON    :1;
@@ -50,7 +40,7 @@ typedef struct {
 } ADCCR2_bits;
 
 typedef struct {
-  __IO ADCSR_bits ADCSR;      /*!< ADC status register,   Address offset: 0x00 */
+  __IO uint32_t ADCSR;      /*!< ADC status register,   Address offset: 0x00 */
   __IO uint32_t ADCCR1;     /*!< ADC control register 1,              Address offset: 0x04 */
   __IO ADCCR2_bits ADCCR2;  /*!< ADC control register 2,       Address offset: 0x08 */
   __IO uint32_t ADCSMPR1;       /*!< ADC sample time register 1,           Address offset: 0x0C */
