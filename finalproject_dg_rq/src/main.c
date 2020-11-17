@@ -1,15 +1,10 @@
 /**
     Main: Contains main function
     @file main.c
-    @author Josh Brake
-    @version 1.0 10/7/2020
+    @author Rebecca Qin and Dithi Ganjam
 */
 
-#include "STM32F401RE.h"
 #include "main.h"
-#include <string.h>
-#include "UARTRingBuffer.h"
-#include "esp.h"
 
 size_t VOLTAGE_ARRAY_SIZE = 45000;
 uint16_t VOLTAGE_ARRAY[45000]; 
@@ -18,13 +13,7 @@ int recording = 0;
 int play_index = 0;
 
 void play() {
-    // Configure interrupt enable on update event
-    TIM4->EGR |= 1;
-    TIM4->DIER |= (TIM_DIER_UIE);
-    TIM4->ARR = 160; 
-    NVIC_EnableIRQ(TIM4_IRQn);
-    //enable counter
-    TIM4->CR1 |= 1;
+    initPlayTIM(normal);
 }
 
 void TIM4_IRQHandler(void) {
@@ -47,13 +36,13 @@ void EXTI15_10_IRQHandler(void){
         if (recording) {
             TIM2->CR1 &= ~(0b1);
             DMA_STREAM->CR   &= ~(DMA_SxCR_EN);
-            ADC->ADCCR2.ADON = 0;
+            ADC1->CR2 &= ~(ADC_CR2_ADON);
             digitalWrite(GPIOA, LED_PIN, GPIO_LOW);
             recording = 0;
         }
         else {
             count = 0;
-            initTIM2();
+            initADCTIM();
             digitalWrite(GPIOA, LED_PIN, GPIO_HIGH);
             recording = 1;
         }
@@ -75,7 +64,7 @@ void TIM2_IRQHandler(void) {
     else {
         TIM2->CR1 &= ~(0b1);
         DMA_STREAM->CR   &= ~(DMA_SxCR_EN);
-        ADC->ADCCR2.ADON = 0;
+        ADC1->CR2 &= ~(ADC_CR2_ADON);
         digitalWrite(GPIOA, LED_PIN, GPIO_LOW);
         recording = 0;
     }
@@ -108,7 +97,7 @@ void init_DMA(){
     // Dest: Address of the character array buffer in memory.
     DMA2_Stream0->M0AR = (uint32_t) &VOLTAGE_ARRAY;
     // Source: ADC data register
-    DMA2_Stream0->PAR  = (uint32_t) &(ADC->ADCDR);
+    DMA2_Stream0->PAR  = (uint32_t) &(ADC1->DR);
     // Set DMA data transfer length (# of samples).
     DMA2_Stream0->NDTR = (uint16_t) 1;
 
@@ -120,8 +109,8 @@ void init_DMA(){
  * ADC handler turns on the DMA when the the ADC indicates that it's finished converting
  */
 void ADC_IRQHandler(void){
-    ADC->ADCSR &= ~(0b10);// clear interrupt
-    VOLTAGE_ARRAY[count] = (uint16_t) ADC->ADCDR;
+    ADC1->SR &= ~(0b10);// clear interrupt
+    VOLTAGE_ARRAY[count] = (uint16_t) ADC1->DR;
     /*
     if (count == 0) {
         init_DMA();
@@ -161,8 +150,8 @@ int main(void) {
     
     // Initialize timers
     RCC->APB1ENR |= (RCC_APB1ENR_TIM2EN | RCC_APB1ENR_TIM5EN | RCC_APB1ENR_TIM3EN | RCC_APB1ENR_TIM4EN); // TIM2_EN
-    initTIM(DELAY_TIM);
-    initTIM(TIM3);
+    initDelayTIM(DELAY_TIM);
+    initDelayTIM(TIM3);
     // Enable interrupts globally
     __enable_irq();
 
