@@ -8,9 +8,11 @@
 
 size_t VOLTAGE_ARRAY_SIZE = 45000;
 uint16_t VOLTAGE_ARRAY[45000]; 
-int count = 0;
+int count = 0; // count up to 248,000 for full FLASH memory (sector 1-7)
+size_t NUM_SAMPLES = 248000;
 int recording = 0;
 int play_index = 0;
+uint32_t FLASH_SECTOR_1_ADDRESS = 0x08004000;
 
 void play() {
     initPlayTIM(normal);
@@ -41,6 +43,7 @@ void EXTI15_10_IRQHandler(void){
             recording = 0;
         }
         else {
+            initFLASH();
             count = 0;
             initADCTIM();
             digitalWrite(GPIOA, LED_PIN, GPIO_HIGH);
@@ -58,7 +61,7 @@ void TIM2_IRQHandler(void) {
     // Clear update interrupt flag
     TIM2->SR &= ~(TIM_SR_UIF);
     
-    if (count < VOLTAGE_ARRAY_SIZE) {
+    if (count < NUM_SAMPLES) {
         configureADC();
     }
     else {
@@ -95,7 +98,7 @@ void init_DMA(){
     
     // Set DMA source and destination addresses.
     // Dest: Address of the character array buffer in memory.
-    DMA2_Stream0->M0AR = (uint32_t) &VOLTAGE_ARRAY;
+    DMA2_Stream0->M0AR = (uint32_t) FLASH_SECTOR_1_ADDRESS;
     // Source: ADC data register
     DMA2_Stream0->PAR  = (uint32_t) &(ADC1->DR);
     // Set DMA data transfer length (# of samples).

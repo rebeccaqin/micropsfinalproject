@@ -23,6 +23,9 @@
 
 void configureClock();
 
+// FLASH 
+void initFLASH(void);
+
 // TIMER FUNCTIONS
 #define fast 0
 #define slow 1
