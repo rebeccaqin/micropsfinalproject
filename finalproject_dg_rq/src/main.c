@@ -38,7 +38,6 @@ void EXTI15_10_IRQHandler(void){
         EXTI->PR |= (1 << BUTTON_PIN);
         if (recording) {
             TIM2->CR1 &= ~(0b1);
-            DMA_STREAM->CR   &= ~(DMA_SxCR_EN);
             ADC1->CR2 &= ~(ADC_CR2_ADON);
             digitalWrite(GPIOA, LED_PIN, GPIO_LOW);
             recording = 0;
@@ -61,52 +60,15 @@ void EXTI15_10_IRQHandler(void){
 void TIM2_IRQHandler(void) {
     // Clear update interrupt flag
     TIM2->SR &= ~(TIM_SR_UIF);
-    
     if (count < NUM_SAMPLES) {
         configureADC();
     }
     else {
         TIM2->CR1 &= ~(0b1);
-        DMA_STREAM->CR   &= ~(DMA_SxCR_EN);
         ADC1->CR2 &= ~(ADC_CR2_ADON);
         digitalWrite(GPIOA, LED_PIN, GPIO_LOW);
         recording = 0;
     }
-}
-
-void init_DMA(){
-    // DMA2 configuration (stream 6 / channel 4).
-    // SxCR register:
-    // - Memory-to-peripheral
-    // - Circular mode enabled.
-    // - Increment memory ptr, don't increment periph ptr.
-    // - 8-bit data size for both source and destination.
-    // - High priority (2/3).
-    
-    // Reset DMA2 Stream 0
-    DMA2_Stream0->CR &= ~(DMA_SxCR_CHSEL |
-                            DMA_SxCR_PL |
-                            DMA_SxCR_MSIZE |
-                            DMA_SxCR_PSIZE |
-                            DMA_SxCR_PINC |
-                            DMA_SxCR_EN );
-                            
-    // Set up DMA2 Stream 0
-    DMA2_Stream0->CR |= ( (0x2 << DMA_SxCR_PL_Pos) |
-                            (0x01 << DMA_SxCR_MSIZE_Pos) |
-                            (0x01 << DMA_SxCR_PSIZE_Pos) |
-                            (0x0 << DMA_SxCR_CHSEL_Pos)  );
-    
-    // Set DMA source and destination addresses.
-    // Dest: Address of the character array buffer in memory.
-    DMA2_Stream0->M0AR = (uint32_t) FLASH_SECTOR_1_ADDRESS;
-    // Source: ADC data register
-    DMA2_Stream0->PAR  = (uint32_t) &(ADC1->DR);
-    // Set DMA data transfer length (# of samples).
-    DMA2_Stream0->NDTR = (uint16_t) 1;
-
-    // Enable DMA stream.
-    DMA2_Stream0->CR   |= DMA_SxCR_EN;
 }
 
 /** Map ADC IRQ handler to our custom ISR
@@ -114,20 +76,8 @@ void init_DMA(){
  */
 void ADC_IRQHandler(void){
     ADC1->SR &= ~(0b10);// clear interrupt
-    //VOLTAGE_ARRAY[count] = (uint16_t) ADC1->DR;  
-    if (count == 0) {
-        init_DMA();
-    }
-    else {
-        // Clear Stream 0 DMA flags
-        DMA2->LIFCR = (DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0 | DMA_LIFCR_CFEIF0);
-        // Dest: Address of the character array buffer incremented in memory.
-        DMA_STREAM->M0AR  = (uint32_t) (FLASH_SECTOR_1_ADDRESS + count);
-        // Reset number of bytes to transmit
-        DMA_STREAM->NDTR  = (uint16_t) 1;
-        // Re-enable DMA stream.
-        DMA_STREAM->CR |= DMA_SxCR_EN; 
-    }
+    *(FLASH_SECTOR_1_ADDRESS + count) = (uint16_t) ADC1->DR; 
+    while(((FLASH->SR >> FLASH_SR_BSY_Pos) & 0b1) == 1); 
     ++count;
 }
 
@@ -173,44 +123,9 @@ int main(void) {
     __NVIC_EnableIRQ(EXTI15_10_IRQn); // enable button interrupt
     __NVIC_EnableIRQ(ADC_IRQn); // enable ADC interrupt
     int playing = 0;
-    // testing writing to flash
-    initFLASH();
-    init_DMA();
-    configureADC();
-    while(((FLASH->SR >> FLASH_SR_BSY_Pos) & 0b1) == 1);
-    
-    // Clear Stream 0 DMA flags
-    DMA2->LIFCR = (DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0 | DMA_LIFCR_CFEIF0);
-    // Reset DMA2 Stream 0
-    DMA2_Stream0->CR &= ~(DMA_SxCR_CHSEL |
-                            DMA_SxCR_PL |
-                            DMA_SxCR_MSIZE |
-                            DMA_SxCR_PSIZE |
-                            DMA_SxCR_PINC |
-                            DMA_SxCR_EN );
-                            
-    // Set up DMA2 Stream 0
-    DMA2_Stream0->CR |= ( (0x2 << DMA_SxCR_PL_Pos) |
-                            (0x01 << DMA_SxCR_MSIZE_Pos) |
-                            (0x01 << DMA_SxCR_PSIZE_Pos) |
-                            (0x0 << DMA_SxCR_CHSEL_Pos)  );
-    // Dest: Address of the character array buffer incremented in memory.
-    DMA_STREAM->M0AR  = (uint32_t) (FLASH_SECTOR_1_ADDRESS + 1);
-    // Source: ADC data register
-    DMA2_Stream0->PAR  = (uint32_t) &(ADC1->DR);
-    // Set DMA data transfer length (# of samples).
-    DMA2_Stream0->NDTR = (uint16_t) 1;
-    // Enable DMA stream.
-    DMA2_Stream0->CR   |= DMA_SxCR_EN;
-    configureADC();
-    
-    //uint16_t *address = (uint16_t *) (FLASH_SECTOR_1_ADDRESS + 1);
-    //*(address) = (uint16_t) 0xccaa;
-    //*FLASH_SECTOR_1_ADDRESS = 11;
-    while(((FLASH->SR >> FLASH_SR_BSY_Pos) & 0b1) == 1);
     while(1){
        // delay_millis(TIM3, 20);
-        if (count == NUM_SAMPLES && !playing) {
+        if (count >= NUM_SAMPLES && !playing) {
             play();
             playing = 1;
         }
