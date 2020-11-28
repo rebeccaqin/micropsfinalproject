@@ -12,6 +12,6 @@
 #include "STM32F401RE_FLASH.h"
 #include "STM32F401RE_RCC.h"
 #include "STM32F401RE_USART.h"
-
+#include "UARTRingBuffer.h"
 
 #endif

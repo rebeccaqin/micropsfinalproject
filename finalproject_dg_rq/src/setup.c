@@ -1,24 +1,10 @@
 #include "setup.h"
-const uint16_t arr_for_sampling = 2000;
+const uint16_t arr_for_sampling = 2100;
 
 /**
  * FLASH FUNCTIONS
  */
-
-void initFLASH(void) {
-    FLASH->KEYR = 0x45670123;
-    FLASH->KEYR = 0xCDEF89AB; // enable write to CR
-    FLASH->OPTKEYR = 0x08192A3B;
-    FLASH->OPTKEYR = 0x4C5D6E7F; // enable write to OPTCR
-    FLASH->CR |= (0b01 << FLASH_CR_PSIZE_Pos); // half-word (16-bits)
-    FLASH->OPTCR |= (0xaa << FLASH_OPTCR_RDP_Pos);
-    FLASH->OPTCR |= (FLASH_OPTCR_nWRP_1 | FLASH_OPTCR_nWRP_2 | FLASH_OPTCR_nWRP_3 | FLASH_OPTCR_nWRP_4 | FLASH_OPTCR_nWRP_5 | FLASH_OPTCR_nWRP_6 | FLASH_OPTCR_nWRP_7);
-    FLASH->OPTCR &= ~(0b1 << 31);
-    clearFLASH();
-    FLASH->CR |= FLASH_CR_PG;
-}
-
-void clearFLASH(){
+void clearFlash(){
     // Clear flash memory
     while(((FLASH->SR >> FLASH_SR_BSY_Pos) & 0b1) == 1);
     FLASH->CR |= (0b0001 << FLASH_CR_SNB_Pos);
@@ -50,6 +36,20 @@ void clearFLASH(){
     FLASH->CR |= FLASH_CR_STRT;
     while(((FLASH->SR >> FLASH_SR_BSY_Pos) & 0b1) == 1);
 }
+
+void initFLASH(void) {
+    FLASH->KEYR = 0x45670123;
+    FLASH->KEYR = 0xCDEF89AB; // enable write to CR
+    FLASH->OPTKEYR = 0x08192A3B;
+    FLASH->OPTKEYR = 0x4C5D6E7F; // enable write to OPTCR
+    FLASH->CR |= (0b01 << FLASH_CR_PSIZE_Pos); // half-word (16-bits)
+    FLASH->OPTCR |= (0xaa << FLASH_OPTCR_RDP_Pos);
+    FLASH->OPTCR |= (FLASH_OPTCR_nWRP_1 | FLASH_OPTCR_nWRP_2 | FLASH_OPTCR_nWRP_3 | FLASH_OPTCR_nWRP_4 | FLASH_OPTCR_nWRP_5 | FLASH_OPTCR_nWRP_6 | FLASH_OPTCR_nWRP_7);
+    FLASH->OPTCR &= ~(0b1 << 31);
+    clearFlash();
+    FLASH->CR |= FLASH_CR_PG;
+}
+
 /**
  * TIMER FUNCTIONS
  */
@@ -282,8 +282,8 @@ void initESP8266(USART_TypeDef * ESP_USART, USART_TypeDef * TERM_USART){
         of characters.
 */
 void serveWebpage(uint8_t str []) {
-    USART_TypeDef * ESP_USART = id2Port(ESP_USART_ID);
-    USART_TypeDef * TERM_USART = id2Port(TERM_USART_ID);
+    USART1_TypeDef * ESP_USART = id2Port(ESP_USART_ID);
+    USART1_TypeDef * TERM_USART = id2Port(TERM_USART_ID);
     uint8_t cmd_response[BUFFER_SIZE] = "";
 
     uint32_t str_length = strlen(str)+2;

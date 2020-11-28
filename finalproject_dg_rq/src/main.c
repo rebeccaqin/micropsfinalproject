@@ -114,8 +114,8 @@ int main(void) {
 
     // set GPIO PA 8 to LED pin
     pinMode(GPIOA1, LED_PIN, GPIO_OUTPUT);
-    pinMode(GPIOC1, BUTTON_PIN, GPIO_INPUT);
-    pinMode(GPIOA1, GPIO_PA0, GPIO_ANALOG);
+    pinMode(GPIOC1, BUTTON_PIN, GPIO_INPUT); // button press
+    pinMode(GPIOA1, GPIO_PA0, GPIO_ANALOG); // ADC pin
     *SYSCFG_EXTICR4 |= 0b00100000; // Set EXTICR4 for PC13 to 2
     // Configure interrupt for falling edge of GPIO PC13
     // 1. Configure mask bit
@@ -138,12 +138,12 @@ int main(void) {
     }
     */
     // Configure ESP and Terminal UARTs
-    USART_TypeDef * ESP_USART = initUSART(ESP_USART_ID, 115200);
-    USART_TypeDef * TERM_USART = initUSART(TERM_USART_ID, 115200);
+    USART1_TypeDef * ESP_USART = initUSART(ESP_USART_ID, 115200);
+    USART1_TypeDef * TERM_USART = initUSART(TERM_USART_ID, 115200);
     // Configure USART1 interrupt
     // Configure interrupt for USART1
     *NVIC_ISER1 |= (1 << 5);
-    ESP_USART->CR1 |= USART_CR1_RXNEIE;
+    ESP_USART->CR1.RXNEIE = 1; 
     
     // Initialize ring buffer
     init_ring_buffer();
@@ -195,7 +195,7 @@ int main(void) {
                     if(button_req == 1){
                         volatile uint8_t button_req_type;
                         if(look_for_substring("=PLAY", http_request)) button_req_type = REQ_PLAY;
-                         else if(look_for_substring("=SLOW", http_request)) button_req_type = REQ_SLOW;
+                        else if(look_for_substring("=SLOW", http_request)) button_req_type = REQ_SLOW;
                         else if(look_for_substring("=FAST", http_request)) button_req_type = REQ_FAST;
                         else if(look_for_substring("=ALIEN", http_request)) button_req_type = REQ_ALIEN;
                         else button_req_type = REQ_UNKNOWN;
