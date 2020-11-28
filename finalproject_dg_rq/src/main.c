@@ -6,16 +6,16 @@
 
 #include "main.h"
 
-size_t VOLTAGE_ARRAY_SIZE = 45000;
-uint16_t VOLTAGE_ARRAY[45000]; 
 int count = 0; // count up to 248,000 for full FLASH memory (sector 1-7)
 size_t NUM_SAMPLES = 248000;
 int recording = 0;
 int play_index = 0;
 uint16_t *FLASH_SECTOR_1_ADDRESS = (uint16_t *) 0x08004000;
+int TYPE = NORMAL;
 
-void play() {
-    initPlayTIM(normal);
+void play(int type, int speed) {
+    TYPE = type;
+    initPlayTIM(speed);
 }
 
 void TIM4_IRQHandler(void) {
@@ -23,7 +23,11 @@ void TIM4_IRQHandler(void) {
     TIM4->SR &= ~(TIM_SR_UIF);
     if (play_index == NUM_SAMPLES) play_index = 0;
     //spiSendReceive12(VOLTAGE_ARRAY[play_index]);
-    spiSendReceive12( *(FLASH_SECTOR_1_ADDRESS + play_index));
+    uint16_t note = *(FLASH_SECTOR_1_ADDRESS + play_index);
+    if (TYPE == ALIEN) {
+        note = note*sin(2*3.14*(80000/40000)*NUM_SAMPLES);
+    }
+    spiSendReceive12(note);
     ++play_index;
 }
 /** Map Button IRQ handler to our custom ISR
@@ -122,30 +126,28 @@ int main(void) {
     EXTI->FTSR |= 1 << 13; // PC13 is EXTI13
     __NVIC_EnableIRQ(EXTI15_10_IRQn); // enable button interrupt
     __NVIC_EnableIRQ(ADC_IRQn); // enable ADC interrupt
+    /* // for testing alien voice
     int playing = 0;
     while(1){
        // delay_millis(TIM3, 20);
         if (count >= NUM_SAMPLES && !playing) {
-            play();
+            play(NORMAL, normal);
             playing = 1;
         }
     }
-    /*
+    */
     // Configure ESP and Terminal UARTs
     USART_TypeDef * ESP_USART = initUSART(ESP_USART_ID, 115200);
     USART_TypeDef * TERM_USART = initUSART(TERM_USART_ID, 115200);
-    */
     // Configure USART1 interrupt
-    /*
     // Configure interrupt for USART1
     *NVIC_ISER1 |= (1 << 5);
-    ESP_USART->CR1.RXNEIE = 1;
+    ESP_USART->CR1 |= USART_CR1_RXNEIE;
     
     // Initialize ring buffer
     init_ring_buffer();
     flush_buffer();
 
-    /*
     // Initialize ESP
     delay_millis(DELAY_TIM, 1000);
     initESP8266(ESP_USART, TERM_USART);
@@ -156,7 +158,7 @@ int main(void) {
     uint8_t volatile temp_str[BUFFER_SIZE] = "";
     
     while(1) {
-        // Clear temp_str buffer
+        // Clear temp_str buffer 
         memset(http_request, 0, BUFFER_SIZE);
         volatile uint32_t http_req_len = 0;
 
@@ -189,24 +191,30 @@ int main(void) {
                         If REQ=OFF, then turn LED off.
                         If we don't recognize the REQ, then send message to terminal and don't do anything.
                     */
-                   /*
                     if(button_req == 1){
                         volatile uint8_t button_req_type;
-                        if(look_for_substring("=START", http_request)) button_req_type = REQ_RECORDING_START;
-                        else if(look_for_substring("=STOP", http_request)) button_req_type = REQ_RECORDING_STOP;
-                        else if(look_for_substring("=PLAYVOICE", http_request)) button_req_type = REQ_PLAY;
+                        if(look_for_substring("=PLAY", http_request)) button_req_type = REQ_PLAY;
+                         else if(look_for_substring("=SLOW", http_request)) button_req_type = REQ_SLOW;
+                        else if(look_for_substring("=FAST", http_request)) button_req_type = REQ_FAST;
+                        else if(look_for_substring("=ALIEN", http_request)) button_req_type = REQ_ALIEN;
                         else button_req_type = REQ_UNKNOWN;
 
                         switch(button_req_type){
-                            case REQ_RECORDING_START:
-                                digitalWrite(GPIOA, LED_PIN, 1);
-                                sendString(TERM_USART, "Turning LED on.\n");
-                                break;
-                            case REQ_RECORDING_STOP:
-                                digitalWrite(GPIOA, LED_PIN, 0);
-                                sendString(TERM_USART, "Turning LED off.\n");
-                                break;
                             case REQ_PLAY:
+                                play(NORMAL, normal);
+                                sendString(TERM_USART, "Playing back regular voice.\n");
+                                break;
+                            case REQ_SLOW:
+                                play(NORMAL, slow);
+                                sendString(TERM_USART, "Playing voice slowed down.\n");
+                                break;
+                            case REQ_FAST:
+                                play(NORMAL, fast);
+                                sendString(TERM_USART, "Playing voice sped up.\n");
+                                break;
+                            case REQ_ALIEN:
+                                play(ALIEN, normal);
+                                sendString(TERM_USART, "Playing alien voice.\n");
                                 break;
                             case REQ_UNKNOWN:
                                 sendString(TERM_USART, "Unknown request.\n");
@@ -220,17 +228,11 @@ int main(void) {
                     serveWebpage("<h3>~~ALiEn vOicE FiLteR~~</h3>");
                     serveWebpage("<p>Welcome to the spooky alien voice filter!</p>");
                     serveWebpage("<p>Press record to start recording your voice. Press stop recording to stop. The recording will automatically stop after 30 seconds.</p>");
-                    serveWebpage("<form action=\"REQ=START\"><input type=\"submit\" value = \"Record\"></form>");
-                    serveWebpage("<form action=\"REQ=STOP\"><input type=\"submit\" value = \"Stop Recording\"></form>");
-                    serveWebpage("<form action=\"REQ=PLAYVOICE\"><input type=\"submit\" value = \"Play voice\"></form>");
+                    serveWebpage("<form action=\"REQ=PLAY\"><input type=\"submit\" value = \"Playback\"></form>");
+                    serveWebpage("<form action=\"REQ=SLOW\"><input type=\"submit\" value = \"Slow Down\"></form>");
+                    serveWebpage("<form action=\"REQ=FAST\"><input type=\"submit\" value = \"Speed Up\"></form>");
+                    serveWebpage("<form action=\"REQ=ALIEN\"><input type=\"submit\" value = \"Alien Voice\"></form>");
 
-                    // Read if LED is on or off and display to webpage.
-                    if(digitalRead(GPIOA, LED_PIN)){
-                        serveWebpage("<p>LED is ON.</p>");
-                    }
-                    else {
-                        serveWebpage("<p>LED is OFF.</p>");
-                    }
                 }
 
                 // Close connection
@@ -241,5 +243,4 @@ int main(void) {
             }
         }
     }
-    */
 }

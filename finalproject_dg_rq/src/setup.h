@@ -4,15 +4,16 @@
 // Vendor-provided device header file.
 #include "stm32f4xx.h"
 
+// Wifi Network Info (make sure to keep surrounding double quotes)
+#define SSID "Fios-QS9zf"
+#define PASSWORD "yes753code39jab"
+
 #define SYSTEMCORECLOCK 8000000
-#define CMD_DELAY_MS 40
+#define CMD_DELAY_MS 60
 #define BUFFER_SIZE 2048
 #define DELAY_TIM TIM5
 #define ESP_USART_ID 1
 #define TERM_USART_ID 2
-// Wifi Network Info (make sure to keep surrounding double quotes)
-#define SSID "Structure"
-#define PASSWORD "structure0770"
 
 // RCC
 

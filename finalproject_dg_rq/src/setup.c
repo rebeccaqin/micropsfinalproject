@@ -1,11 +1,12 @@
 #include "setup.h"
-const uint16_t arr_for_sampling = 200;
+const uint16_t arr_for_sampling = 2000;
 
 /**
  * RCC FUNCTIONS
  */
 
 void configureClock(){
+    configureFLASH();
     /* Configure APB prescalers
     1. Set APB2 (high-speed bus) prescaler to no division
     2. Set APB1 (low-speed bus) to divide by 2.
@@ -21,17 +22,35 @@ void configureClock(){
     while(!((RCC->CR >> RCC_CR_HSERDY_Pos) & 0b1));
     
     // Configure and turn on PLL for 84 MHz
-    // configurePLL();
+    configurePLL();
 
-    // Select HSE as clock source
-    RCC->CFGR |= RCC_CFGR_SW_HSE;
-    while(((RCC->CFGR >> RCC_CFGR_SWS_Pos) & 0b1) != 0b01);
+    // Select PLL as clock source
+    RCC->CFGR |= RCC_CFGR_SW_PLL;
+    while(((RCC->CFGR >> RCC_CFGR_SWS_Pos) & 0b11) != 0b10);
 }
 
+void configurePLL(){
+    RCC->CR &= ~(RCC_CR_PLLON); // Turn off PLL
+    while (((RCC->CR >> RCC_CR_PLLRDY_Pos) & 0b1) != 0); // Wait till PLL is unlocked (e.g., off)
+
+    // Load configuration
+    RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_HSE;
+    RCC->PLLCFGR |= (8 << RCC_PLLCFGR_PLLM_Pos);
+    RCC->PLLCFGR |= (336 << RCC_PLLCFGR_PLLN_Pos);
+    RCC->PLLCFGR |= (0b01 << RCC_PLLCFGR_PLLP_Pos); // divide by 4 
+    RCC->PLLCFGR |= (4 << RCC_PLLCFGR_PLLQ_Pos);
+
+    // Enable PLL and wait until it's locked
+    RCC->CR |= RCC_CR_PLLON; 
+    while(((RCC->CR >> RCC_CR_PLLRDY_Pos) & 0b1) == 0);
+}
 /**
  * FLASH FUNCTIONS
  */
-
+void configureFLASH() {
+    FLASH->ACR |= (2 << FLASH_ACR_LATENCY_Pos); // Set to 0 waitstates
+    FLASH->ACR |= FLASH_ACR_PRFTEN; // Turn on the ART
+}
 void initFLASH(void) {
     FLASH->KEYR = 0x45670123;
     FLASH->KEYR = 0xCDEF89AB; // enable write to CR
@@ -96,6 +115,16 @@ void initADCTIM(void) {
 void initPlayTIM(int speed) {
     TIM4->EGR |= 1;
     TIM4->DIER |= (TIM_DIER_UIE);
+    /*
+    uint16_t arr;
+    if (speed == fast){
+        arr = arr_for_sampling/3; 
+    } else if (speed == slow) {
+        arr = arr_for_sampling*2; 
+    } else{
+        arr = arr_for_sampling; 
+    } 
+    */
     TIM4->ARR = arr_for_sampling;
     /*
     if (speed == fast) TIM4->ARR = arr_for_sampling/3; 
@@ -250,8 +279,6 @@ void spiInit(uint32_t br, uint32_t cpol, uint32_t cpha) {
     SPI1->CR1 |= SPI_CR1_SPE;   // Enable SPI
 }
 
-
-
 /* Transmits a short (2 bytes) over SPI and returns the received short.
  *    -- send: the short to send over SPI
  *    -- return: the short received over SPI */
@@ -261,8 +288,8 @@ uint16_t spiSendReceive12(uint16_t send) {
     digitalWrite(GPIOA, 1, 0);
     SPI1->CR1 |= SPI_CR1_SPE;
     // apply a mask so only the first 12 
-    send = (0b0001 << 12) | (send & 0xFFF);
-    SPI1->DR = send;
+    uint16_t modified_send = (0b0001 << 12) | (send & 0xFFF);
+    SPI1->DR = modified_send;
     
     while(!((SPI1->SR >> SPI_SR_RXNE_Pos) & 0b1));
     uint16_t rec = SPI1->DR;
@@ -322,7 +349,7 @@ USART_TypeDef * initUSART(uint8_t USART_ID, uint32_t baud_rate){
 
     USART->CR1 |= USART_CR1_UE; // Enable USART
     USART->CR1 &= ~(USART_CR1_M);// M=0 corresponds to 8 data bits
-    USART->CR2 &= (0b00 << USART_CR2_STOP_Pos); // 0b00 corresponds to 1 stop bit
+    USART->CR2 |= (0b00 << USART_CR2_STOP_Pos); // 0b00 corresponds to 1 stop bit
     USART->CR1 &= ~(USART_CR1_OVER8);  // Set to 16 times sampling freq
 
     // Set baud rate to 9.6 kbps
@@ -485,11 +512,20 @@ repeat:
  */
 void initESP8266(USART_TypeDef * ESP_USART, USART_TypeDef * TERM_USART){
     uint8_t volatile str[BUFFER_SIZE] = "";
-
+    
     // Disable echo
-    sendString(ESP_USART, "ATE0\r\n");
+    sendString(ESP_USART, "ATE1\r\n");
     delay_millis(DELAY_TIM, CMD_DELAY_MS);
     readString(ESP_USART, str);
+    delay_millis(DELAY_TIM, CMD_DELAY_MS);
+    sendString(TERM_USART, str);
+    delay_millis(DELAY_TIM, CMD_DELAY_MS);
+
+    // Set CWMODE to AP + station mode
+    sendString(ESP_USART, "AT+CWMODE=3\r\n");
+    delay_millis(DELAY_TIM, CMD_DELAY_MS);
+    readString(ESP_USART, str);
+    delay_millis(DELAY_TIM, CMD_DELAY_MS);
     sendString(TERM_USART, str);
     delay_millis(DELAY_TIM, CMD_DELAY_MS);
 
@@ -497,6 +533,7 @@ void initESP8266(USART_TypeDef * ESP_USART, USART_TypeDef * TERM_USART){
     sendString(ESP_USART, "AT+CIPMUX=1\r\n");
     delay_millis(DELAY_TIM, CMD_DELAY_MS);
     readString(ESP_USART, str);
+    delay_millis(DELAY_TIM, CMD_DELAY_MS);
     sendString(TERM_USART, str);
     delay_millis(DELAY_TIM, CMD_DELAY_MS);
 
@@ -504,6 +541,7 @@ void initESP8266(USART_TypeDef * ESP_USART, USART_TypeDef * TERM_USART){
     sendString(ESP_USART, "AT+CIPSERVER=1,80\r\n");
     delay_millis(DELAY_TIM, CMD_DELAY_MS);
     readString(ESP_USART, str);
+    delay_millis(DELAY_TIM, CMD_DELAY_MS);
     sendString(TERM_USART, str);
     delay_millis(DELAY_TIM, CMD_DELAY_MS);
 
@@ -514,17 +552,20 @@ void initESP8266(USART_TypeDef * ESP_USART, USART_TypeDef * TERM_USART){
     sendString(ESP_USART, connect_cmd);
     delay_millis(DELAY_TIM, CMD_DELAY_MS);
     readString(ESP_USART, str);
+    delay_millis(DELAY_TIM, CMD_DELAY_MS);
     sendString(TERM_USART, str);
     delay_millis(DELAY_TIM, CMD_DELAY_MS);
 
     // Wait for connection
-    delay_millis(DELAY_TIM, 10000);
+    delay_millis(DELAY_TIM, 30000);
 
     // Print out status
     sendString(ESP_USART, "AT+CIFSR\r\n");
     delay_millis(DELAY_TIM, CMD_DELAY_MS);
     readString(ESP_USART, str);
+    delay_millis(DELAY_TIM, CMD_DELAY_MS);
     sendString(TERM_USART, str);
+
 }
 
 /** Send command to ESP and echo to the terminal.

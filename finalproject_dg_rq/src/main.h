@@ -15,9 +15,10 @@
 // Custom defines
 ///////////////////////////////////////////////////////////////////////////////
 
-// Wifi Network Info (make sure to keep surrounding double quotes)
-#define SSID "Structure"
-#define PASSWORD "structure0770"
+// for playing
+#define NORMAL 0
+#define ALIEN 1
+
 
 #define NVIC_ISER0 ((uint32_t *) 0xE000E100UL)
 #define NVIC_ISER1 ((uint32_t *) 0xE000E104UL)
@@ -33,9 +34,10 @@
 
 // Request defines
 #define REQ_UNKNOWN 0
-#define REQ_RECORDING_START 1
-#define REQ_RECORDING_STOP 2
-#define REQ_PLAY 3
+#define REQ_PLAY 1
+#define REQ_SLOW 2
+#define REQ_FAST 3
+#define REQ_ALIEN 4
 
 
 #define ESP_USART_ID USART1_ID
