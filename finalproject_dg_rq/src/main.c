@@ -5,6 +5,7 @@
 */
 
 #include "main.h"
+#include <math.h>
 
 int count = 0; // count up to 248,000 for full FLASH memory (sector 1-7)
 size_t NUM_SAMPLES = 248000;
@@ -94,7 +95,7 @@ void USART1_IRQHandler(){
 
 
 int main(void) {
-
+    configureFlash();
     configureClock();
 
     // Enable GPIOA and GPIOC clock and DMA2
@@ -112,9 +113,9 @@ int main(void) {
     __enable_irq();
 
     // set GPIO PA 8 to LED pin
-    pinMode(GPIOA, LED_PIN, GPIO_OUTPUT);
-    pinMode(GPIOC, BUTTON_PIN, GPIO_INPUT);
-    pinMode(GPIOA, GPIO_PA0, GPIO_ANALOG);
+    pinMode(GPIOA1, LED_PIN, GPIO_OUTPUT);
+    pinMode(GPIOC1, BUTTON_PIN, GPIO_INPUT);
+    pinMode(GPIOA1, GPIO_PA0, GPIO_ANALOG);
     *SYSCFG_EXTICR4 |= 0b00100000; // Set EXTICR4 for PC13 to 2
     // Configure interrupt for falling edge of GPIO PC13
     // 1. Configure mask bit
