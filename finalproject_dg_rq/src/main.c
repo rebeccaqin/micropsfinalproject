@@ -22,7 +22,7 @@ void play(int type, int speed) {
 void TIM4_IRQHandler(void) {
     // Clear update interrupt flag
     TIM4->SR &= ~(TIM_SR_UIF);
-    if (play_index == NUM_SAMPLES) play_index = 0;
+    if (play_index == NUM_SAMPLES) play_index = 0; //TIM4->CR1 &= ~TIM_CR1_CEN
     //spiSendReceive12(VOLTAGE_ARRAY[play_index]);
     uint16_t note = *(FLASH_SECTOR_1_ADDRESS + play_index);
     if (TYPE == ALIEN) {
