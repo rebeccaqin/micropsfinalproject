@@ -9,7 +9,7 @@
 #define SSID "Fios-QS9zf"
 #define PASSWORD "yes753code39jab"
 
-#define SYSTEMCORECLOCK 8000000
+#define SYSTEMCORECLOCK 84000000
 #define CMD_DELAY_MS 60
 #define BUFFER_SIZE 2048
 #define DELAY_TIM TIM5
