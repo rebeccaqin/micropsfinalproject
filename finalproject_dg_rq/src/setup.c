@@ -137,7 +137,7 @@ void configureADC(){
     //enable interupts after each ADC conversion to allow transfer from DR to DMA
     ADC1->CR1 |= ADC_CR1_EOCIE;
     // turn on end of conversion selection
-    ADC1->CR1 |= ADC_CR2_EOCS;
+    ADC1->CR2 |= ADC_CR2_EOCS;
     // turn on DMA mode
     // ADC1->CR2 |= ADC_CR2_DMA;
     //sampling time for ADC TRY THIS LATER
