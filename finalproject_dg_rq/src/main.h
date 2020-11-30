@@ -15,6 +15,14 @@
 // Custom defines
 ///////////////////////////////////////////////////////////////////////////////
 
+// for playing
+#define NORMAL 0
+#define ALIEN 1
+// TIMER FUNCTIONS
+#define fast 0
+#define slow 1
+#define normal 2
+
 // Wifi Network Info (make sure to keep surrounding double quotes)
 #define SSID "Structure"
 #define PASSWORD "structure0770"
@@ -23,6 +31,7 @@
 #define NVIC_ISER1 ((uint32_t *) 0xE000E104UL)
 #define SYSCFG_EXTICR4 ((uint32_t *) (0x40013800UL + 0x14UL))
 #define DMA_STREAM DMA2_Stream0
+#define FLASH_SECTOR_1_ADDRESS (uint16_t *) 0x08004000
 
 #define NSS_PIN GPIO_PA1
 #define SPI1CLK_PIN GPIO_PA5

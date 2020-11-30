@@ -14,12 +14,64 @@
 
 size_t VOLTAGE_ARRAY_SIZE = 45000;
 uint16_t VOLTAGE_ARRAY[45000]; 
-size_t NUM_SAMPLES = 248000;
+size_t NUM_SAMPLES = 64000;//248000;
+//const uint16_t *FLASH_SECTOR_1_ADDRESS = (uint16_t *) 0x08004000;
 int count = 0;
 int recording = 0;
 int play_index = 0;
+int TYPE = NORMAL;
 
-void play() {
+void clearFlash(){
+    // Clear flash memory
+    
+    while(((FLASH->SR >> FLASH_SR_BSY_Pos) & 0b1) == 1);
+    FLASH->CR |= (0b0111 << FLASH_CR_SNB_Pos);
+    FLASH->CR |= FLASH_CR_SER;
+    FLASH->CR |= FLASH_CR_STRT;
+    while(((FLASH->SR >> FLASH_SR_BSY_Pos) & 0b1) == 1);
+    /*
+    FLASH->CR |= (0b0010 << FLASH_CR_SNB_Pos);
+    FLASH->CR |= FLASH_CR_SER;
+    FLASH->CR |= FLASH_CR_STRT;
+    while(((FLASH->SR >> FLASH_SR_BSY_Pos) & 0b1) == 1);
+    FLASH->CR |= (0b0011 << FLASH_CR_SNB_Pos);
+    FLASH->CR |= FLASH_CR_SER;
+    FLASH->CR |= FLASH_CR_STRT;
+    while(((FLASH->SR >> FLASH_SR_BSY_Pos) & 0b1) == 1);
+    FLASH->CR |= (0b0100 << FLASH_CR_SNB_Pos);
+    FLASH->CR |= FLASH_CR_SER;
+    FLASH->CR |= FLASH_CR_STRT;
+    while(((FLASH->SR >> FLASH_SR_BSY_Pos) & 0b1) == 1);
+    FLASH->CR |= (0b0101 << FLASH_CR_SNB_Pos);
+    FLASH->CR |= FLASH_CR_SER;
+    FLASH->CR |= FLASH_CR_STRT;
+    while(((FLASH->SR >> FLASH_SR_BSY_Pos) & 0b1) == 1);
+    FLASH->CR |= (0b0110 << FLASH_CR_SNB_Pos);
+    FLASH->CR |= FLASH_CR_SER;
+    FLASH->CR |= FLASH_CR_STRT;
+    while(((FLASH->SR >> FLASH_SR_BSY_Pos) & 0b1) == 1);
+    FLASH->CR |= (0b0111 << FLASH_CR_SNB_Pos);
+    FLASH->CR |= FLASH_CR_SER;
+    FLASH->CR |= FLASH_CR_STRT;
+    while(((FLASH->SR >> FLASH_SR_BSY_Pos) & 0b1) == 1);
+    */
+}
+
+void initFLASH(void) {
+    FLASH->KEYR = 0x45670123;
+    FLASH->KEYR = 0xCDEF89AB; // enable write to CR
+    FLASH->OPTKEYR = 0x08192A3B;
+    FLASH->OPTKEYR = 0x4C5D6E7F; // enable write to OPTCR
+    FLASH->CR |= (0b01 << FLASH_CR_PSIZE_Pos); // half-word (16-bits)
+    FLASH->OPTCR |= (0xaa << FLASH_OPTCR_RDP_Pos);
+    FLASH->OPTCR |= (FLASH_OPTCR_nWRP_1 | FLASH_OPTCR_nWRP_2 | FLASH_OPTCR_nWRP_3 | FLASH_OPTCR_nWRP_4 | FLASH_OPTCR_nWRP_5 | FLASH_OPTCR_nWRP_6 | FLASH_OPTCR_nWRP_7);
+    FLASH->OPTCR &= ~(0b1 << 31);
+    clearFlash();
+    FLASH->CR |= FLASH_CR_PG;
+}
+
+void play(int type, int speed) {
+    TYPE = type;
     // Configure interrupt enable on update event
     TIM4->EGR |= 1;
     TIM4->DIER |= (TIM_DIER_UIE);
@@ -32,12 +84,15 @@ void play() {
 void TIM4_IRQHandler(void) {
     // Clear update interrupt flag
     TIM4->SR &= ~(TIM_SR_UIF);
-    if (play_index == VOLTAGE_ARRAY_SIZE) play_index = 0;
-    uint16_t note = (uint16_t) ((double) (VOLTAGE_ARRAY[play_index] * (((double) sin(2*3.14*(900/40000)*play_index)+1))));
+    if (play_index == NUM_SAMPLES) play_index = 0;
+    uint16_t note = *(FLASH_SECTOR_1_ADDRESS + play_index);
+    if (TYPE == ALIEN) {
+        note = (uint16_t) ((double) (note * (((double) sin(2*3.14*(900/40000)*play_index)+1))));
+    }
     spiSendReceive12(note);
-    //spiSendReceive12(VOLTAGE_ARRAY[play_index]);
     ++play_index;
 }
+
 /** Map Button IRQ handler to our custom ISR
  * Button turns on the TIM2 for interrupts to sample at 10kHz
  * If recording, it turns off TIM2, DMA, and ADC to stop recording
@@ -50,12 +105,12 @@ void EXTI15_10_IRQHandler(void){
         EXTI->PR |= (1 << BUTTON_PIN);
         if (recording) {
             TIM2->CR1 &= ~(0b1);
-            DMA_STREAM->CR   &= ~(DMA_SxCR_EN);
             ADC->ADCCR2.ADON = 0;
             digitalWrite(GPIOA, LED_PIN, GPIO_LOW);
             recording = 0;
         }
         else {
+            initFLASH();
             count = 0;
             initTIM2();
             digitalWrite(GPIOA, LED_PIN, GPIO_HIGH);
@@ -73,51 +128,15 @@ void TIM2_IRQHandler(void) {
     // Clear update interrupt flag
     TIM2->SR &= ~(TIM_SR_UIF);
     
-    if (count < VOLTAGE_ARRAY_SIZE) {
+    if (count < NUM_SAMPLES) {
         configureADC();
     }
     else {
         TIM2->CR1 &= ~(0b1);
-        DMA_STREAM->CR   &= ~(DMA_SxCR_EN);
         ADC->ADCCR2.ADON = 0;
         digitalWrite(GPIOA, LED_PIN, GPIO_LOW);
         recording = 0;
     }
-}
-
-void init_DMA(){
-    // DMA2 configuration (stream 6 / channel 4).
-    // SxCR register:
-    // - Memory-to-peripheral
-    // - Circular mode enabled.
-    // - Increment memory ptr, don't increment periph ptr.
-    // - 8-bit data size for both source and destination.
-    // - High priority (2/3).
-    
-    // Reset DMA2 Stream 0
-    DMA2_Stream0->CR &= ~(DMA_SxCR_CHSEL |
-                            DMA_SxCR_PL |
-                            DMA_SxCR_MSIZE |
-                            DMA_SxCR_PSIZE |
-                            DMA_SxCR_PINC |
-                            DMA_SxCR_EN );
-                            
-    // Set up DMA2 Stream 0
-    DMA2_Stream0->CR |= ( (0x2 << DMA_SxCR_PL_Pos) |
-                            (0x01 << DMA_SxCR_MSIZE_Pos) |
-                            (0x01 << DMA_SxCR_PSIZE_Pos) |
-                            (0x0 << DMA_SxCR_CHSEL_Pos)  );
-    
-    // Set DMA source and destination addresses.
-    // Dest: Address of the character array buffer in memory.
-    DMA2_Stream0->M0AR = (uint32_t) &VOLTAGE_ARRAY;
-    // Source: ADC data register
-    DMA2_Stream0->PAR  = (uint32_t) &(ADC->ADCDR);
-    // Set DMA data transfer length (# of samples).
-    DMA2_Stream0->NDTR = (uint16_t) 1;
-
-    // Enable DMA stream.
-    DMA2_Stream0->CR   |= DMA_SxCR_EN;
 }
 
 /** Map ADC IRQ handler to our custom ISR
@@ -125,22 +144,8 @@ void init_DMA(){
  */
 void ADC_IRQHandler(void){
     ADC->ADCSR &= ~(0b10);// clear interrupt
-    VOLTAGE_ARRAY[count] = (uint16_t) ADC->ADCDR;
-    /*
-    if (count == 0) {
-        init_DMA();
-    }
-    else {
-        // Clear Stream 0 DMA flags
-        DMA2->LIFCR = (DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0 | DMA_LIFCR_CFEIF0);
-        // Dest: Address of the character array buffer incremented in memory.
-        DMA_STREAM->M0AR  = (uint32_t) &(VOLTAGE_ARRAY[count]);
-        // Reset number of bytes to transmit
-        DMA_STREAM->NDTR  = (uint16_t) 1;
-        // Re-enable DMA stream.
-        DMA_STREAM->CR |= DMA_SxCR_EN; 
-    }
-    */
+    *(FLASH_SECTOR_1_ADDRESS + count) = (uint16_t) ADC1->DR; 
+    while(((FLASH->SR >> FLASH_SR_BSY_Pos) & 0b1) == 1); 
     ++count;
 }
 
@@ -188,8 +193,8 @@ int main(void) {
     int playing = 0;
     while(1){
        // delay_millis(TIM3, 20);
-        if (count == VOLTAGE_ARRAY_SIZE && !playing) {
-            play();
+        if (count >= NUM_SAMPLES && !playing) {
+            play(NORMAL, normal);
             playing = 1;
         }
     }
