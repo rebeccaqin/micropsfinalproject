@@ -10,26 +10,6 @@ void configureFlash() {
 
 void clearFlash(){
     // Clear flash memory
-    while(FLASH->SR.BSY  == 1);
-    FLASH->CR.SNB = 0b0001;
-    FLASH->CR.SER = 1;
-    FLASH->CR.STRT = 1;
-    while(FLASH->SR.BSY== 1);
-    FLASH->CR.SNB = 0b0010;
-    FLASH->CR.SER = 1;
-    FLASH->CR.STRT = 1;
-    while(FLASH->SR.BSY== 1);
-    FLASH->CR.SNB = 0b0011;
-    FLASH->CR.SER = 1;
-    FLASH->CR.STRT = 1;
-    while(FLASH->SR.BSY== 1);
-    FLASH->CR.SNB = 0b0100;
-    FLASH->CR.SER = 1;
-    FLASH->CR.STRT = 1;
-    while(FLASH->SR.BSY== 1);
-    FLASH->CR.SNB = 0b0101;
-    FLASH->CR.SER = 1;
-    FLASH->CR.STRT = 1;
     while(FLASH->SR.BSY== 1);
     FLASH->CR.SNB = 0b0110;
     FLASH->CR.SER = 1;

@@ -11,11 +11,13 @@
 #include <math.h>
 #include "UARTRingBuffer.h"
 
+size_t VOLTAGE_ARRAY_SIZE = 45000; // RAM
+uint16_t VOLTAGE_ARRAY[45000]; // RAM
 int count = 0; // count up to 248,000 for full FLASH memory (sector 1-7)
-size_t NUM_SAMPLES = 248000;
+size_t NUM_SAMPLES = 130000; // sector 6-7
 int recording = 0;
 int play_index = 0;
-uint16_t *FLASH_SECTOR_1_ADDRESS = (uint16_t *) 0x08004000;
+uint16_t *FLASH_SECTOR_6_ADDRESS = (uint16_t *) 0x08040000;
 int TYPE = NORMAL;
 
 // TIMER
@@ -33,25 +35,10 @@ void initADCTIM(void) {
     TIM2->CR1 |= 1;
 }
 
-void initPlayTIM(int speed) {
+void initPlayTIM(uint16_t arr) {
     TIM4->EGR |= 1;
     TIM4->DIER |= 0b1; // TIM_DIER_UIE
-    /*
-    uint16_t arr;
-    if (speed == fast){
-        arr = arr_for_sampling/3; 
-    } else if (speed == slow) {
-        arr = arr_for_sampling*2; 
-    } else{
-        arr = arr_for_sampling; 
-    } 
-    */
-    TIM4->ARR = arr_for_sampling;
-    /*
-    if (speed == fast) TIM4->ARR = arr_for_sampling/3; 
-    else if (speed == slow) TIM4->ARR = arr_for_sampling*2; 
-    else TIM4->ARR = arr_for_sampling; 
-    */
+    TIM4->ARR = arr;
     NVIC_EnableIRQ(TIM4_IRQn);
     //enable counter
     TIM4->CR1 |= 1;
@@ -63,7 +50,7 @@ void initESP8266(USART_TypeDef * ESP_USART, USART_TypeDef * TERM_USART){
     uint8_t volatile str[BUFFER_SIZE] = "";
 
     // Disable echo
-    sendString(ESP_USART, "ATE0\r\n");
+    sendString(ESP_USART, "ATE1\r\n");
     delay_millis(DELAY_TIM, CMD_DELAY_MS);
     readString(ESP_USART, str);
     delay_millis(DELAY_TIM, CMD_DELAY_MS);
@@ -153,18 +140,18 @@ void serveWebpage(uint8_t str []) {
 
 }
 
-void play(int type, int speed) {
+void play(int type, int arr) {
     TYPE = type;
-    initPlayTIM(speed);
+    initPlayTIM(arr);
 }
 
 void TIM4_IRQHandler(void) {
     // Clear update interrupt flag
     TIM4->SR &= ~(0b1);
-    if (play_index == NUM_SAMPLES) play_index = 0; //TIM4->CR1 &= ~(0b1);
-    uint16_t note = *(FLASH_SECTOR_1_ADDRESS + play_index);
+    if (play_index == NUM_SAMPLES) play_index = 0; //TIM4->CR1 &= ~(0b1); // RAM
+    uint16_t note = *(FLASH_SECTOR_6_ADDRESS + play_index); //VOLTAGE_ARRAY[play_index]; // RAM
     if (TYPE == ALIEN) {
-        note = note*sin(2*3.14*(80000/40000)*NUM_SAMPLES);
+        note = (uint16_t) ((double) (note * (((double) sin(2*3.14*(900/40000)*play_index)+1))));
     }
     spiSendReceive12(note);
     ++play_index;
@@ -186,7 +173,7 @@ void EXTI15_10_IRQHandler(void){
             recording = 0;
         }
         else {
-            initFLASH();
+            initFLASH(); // RAM
             count = 0;
             initADCTIM();
             digitalWrite(GPIOA, LED_PIN, GPIO_HIGH);
@@ -203,7 +190,7 @@ void EXTI15_10_IRQHandler(void){
 void TIM2_IRQHandler(void) {
     // Clear update interrupt flag
     TIM2->SR &= ~(0b1);
-    if (count < NUM_SAMPLES) {
+    if (count < NUM_SAMPLES) {//VOLTAGE_ARRAY_SIZE) { // RAM
         configureADC();
     }
     else {
@@ -219,7 +206,8 @@ void TIM2_IRQHandler(void) {
  */
 void ADC_IRQHandler(void){
     ADC1->SR &= ~(0b10);// clear interrupt
-    *(FLASH_SECTOR_1_ADDRESS + count) = (uint16_t) ADC1->DR.DR; 
+    // VOLTAGE_ARRAY[count] = ADC1->DR.DR; // RAM
+    *(FLASH_SECTOR_6_ADDRESS + count) = (uint16_t) ADC1->DR.DR; 
     while(FLASH->SR.BSY == 1); 
     ++count;
 }
@@ -270,7 +258,15 @@ int main(void) {
     EXTI->FTSR |= 1 << 13; // PC13 is EXTI13
     __NVIC_EnableIRQ(EXTI15_10_IRQn); // enable button interrupt
     __NVIC_EnableIRQ(ADC_IRQn); // enable ADC interrupt
-
+    int playing = 0;
+    while(1){
+        delay_millis(TIM3, 300);
+        if (count >= NUM_SAMPLES && !playing) {
+            play(NORMAL, arr_for_sampling);
+            playing = 1;
+        }
+    }
+/*
     // Configure ESP and Terminal UARTs
     USART_TypeDef * ESP_USART = initUSART(ESP_USART_ID, 115200);
     USART_TypeDef * TERM_USART = initUSART(TERM_USART_ID, 115200);
@@ -326,6 +322,7 @@ int main(void) {
                         If REQ=OFF, then turn LED off.
                         If we don't recognize the REQ, then send message to terminal and don't do anything.
                     */
+                   /*
                     if(button_req == 1){
                         volatile uint8_t button_req_type;
                         if(look_for_substring("=PLAY", http_request)) button_req_type = REQ_PLAY;
@@ -384,4 +381,5 @@ int main(void) {
             }
         }
     }
+    */
 }

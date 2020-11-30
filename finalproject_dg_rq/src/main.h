@@ -29,9 +29,6 @@
 #define NVIC_ISER1 ((uint32_t *) 0xE000E104UL)
 #define SYSCFG_EXTICR4 ((uint32_t *) (0x40013800UL + 0x14UL))
 
-#define SSID "Structure"
-#define PASSWORD "structure0770"
-
 typedef struct {
     volatile uint32_t IMR;
     volatile uint32_t EMR;
@@ -62,7 +59,7 @@ typedef struct {
 #define ADC_TIM TIM2
 #define PLAY_TIM TIM4
 #define DELAY_TIM TIM5
-#define CMD_DELAY_MS 50
+#define CMD_DELAY_MS 100
 #define BUFFER_SIZE 2048
 
 ///////////////////////////////////////////////////////////////////////////////
