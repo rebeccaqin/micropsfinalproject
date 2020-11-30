@@ -10,9 +10,11 @@
 #include <string.h>
 #include "UARTRingBuffer.h"
 #include "esp.h"
+#include <math.h>
 
 size_t VOLTAGE_ARRAY_SIZE = 45000;
 uint16_t VOLTAGE_ARRAY[45000]; 
+size_t NUM_SAMPLES = 248000;
 int count = 0;
 int recording = 0;
 int play_index = 0;
@@ -21,7 +23,7 @@ void play() {
     // Configure interrupt enable on update event
     TIM4->EGR |= 1;
     TIM4->DIER |= (TIM_DIER_UIE);
-    TIM4->ARR = 160; 
+    TIM4->ARR = 100; 
     NVIC_EnableIRQ(TIM4_IRQn);
     //enable counter
     TIM4->CR1 |= 1;
@@ -31,7 +33,9 @@ void TIM4_IRQHandler(void) {
     // Clear update interrupt flag
     TIM4->SR &= ~(TIM_SR_UIF);
     if (play_index == VOLTAGE_ARRAY_SIZE) play_index = 0;
-    spiSendReceive12(VOLTAGE_ARRAY[play_index]);
+    uint16_t note = (uint16_t) ((double) (VOLTAGE_ARRAY[play_index] * (((double) sin(2*3.14*(900/40000)*play_index)+1))));
+    spiSendReceive12(note);
+    //spiSendReceive12(VOLTAGE_ARRAY[play_index]);
     ++play_index;
 }
 /** Map Button IRQ handler to our custom ISR
