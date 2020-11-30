@@ -8,10 +8,10 @@
 #include <math.h>
 
 int count = 0; // count up to 248,000 for full FLASH memory (sector 1-7)
-size_t NUM_SAMPLES = 248000;
+size_t NUM_SAMPLES = 130000;
 int recording = 0;
 int play_index = 0;
-uint16_t *FLASH_SECTOR_1_ADDRESS = (uint16_t *) 0x08004000;
+uint16_t *FLASH_SECTOR_6_ADDRESS = (uint16_t *) 0x08040000;
 int TYPE = NORMAL;
 
 void play(int type, int speed) {
@@ -24,7 +24,7 @@ void TIM4_IRQHandler(void) {
     TIM4->SR &= ~(TIM_SR_UIF);
     if (play_index == NUM_SAMPLES) play_index = 0; //TIM4->CR1 &= ~TIM_CR1_CEN
     //spiSendReceive12(VOLTAGE_ARRAY[play_index]);
-    uint16_t note = *(FLASH_SECTOR_1_ADDRESS + play_index);
+    uint16_t note = *(FLASH_SECTOR_6_ADDRESS + play_index);
     if (TYPE == ALIEN) {
         note = note*sin(2*3.14*(80000/40000)*NUM_SAMPLES);
     }
@@ -81,7 +81,9 @@ void TIM2_IRQHandler(void) {
  */
 void ADC_IRQHandler(void){
     ADC1->SR &= ~(0b10);// clear interrupt
-    *(FLASH_SECTOR_1_ADDRESS + count) = (uint16_t) ADC1->DR; 
+    uint16_t stuff = ADC1->DR;
+    *(FLASH_SECTOR_6_ADDRESS + count) = 0x1234;
+    //*(FLASH_SECTOR_6_ADDRESS + count) = (uint16_t) ADC1->DR; 
     while(((FLASH->SR >> FLASH_SR_BSY_Pos) & 0b1) == 1); 
     ++count;
 }
@@ -127,7 +129,7 @@ int main(void) {
     EXTI->FTSR |= 1 << 13; // PC13 is EXTI13
     __NVIC_EnableIRQ(EXTI15_10_IRQn); // enable button interrupt
     __NVIC_EnableIRQ(ADC_IRQn); // enable ADC interrupt
-    /* // for testing alien voice
+    // for testing alien voice
     int playing = 0;
     while(1){
        // delay_millis(TIM3, 20);
@@ -136,7 +138,7 @@ int main(void) {
             playing = 1;
         }
     }
-    */
+   /*
     // Configure ESP and Terminal UARTs
     USART1_TypeDef * ESP_USART = initUSART(ESP_USART_ID, 115200);
     USART1_TypeDef * TERM_USART = initUSART(TERM_USART_ID, 115200);
@@ -192,6 +194,7 @@ int main(void) {
                         If REQ=OFF, then turn LED off.
                         If we don't recognize the REQ, then send message to terminal and don't do anything.
                     */
+                   /*
                     if(button_req == 1){
                         volatile uint8_t button_req_type;
                         if(look_for_substring("=PLAY", http_request)) button_req_type = REQ_PLAY;
@@ -244,4 +247,5 @@ int main(void) {
             }
         }
     }
+    */
 }

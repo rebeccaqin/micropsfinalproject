@@ -6,14 +6,18 @@ const uint16_t arr_for_sampling = 2100;
  */
 void clearFlash(){
     // Clear flash memory
+    /*
     while(((FLASH->SR >> FLASH_SR_BSY_Pos) & 0b1) == 1);
+    FLASH->CR |= FLASH_CR_SER;
     FLASH->CR |= (0b0001 << FLASH_CR_SNB_Pos);
-    FLASH->CR |= FLASH_CR_SER;
     FLASH->CR |= FLASH_CR_STRT;
+    */
+   /*
     while(((FLASH->SR >> FLASH_SR_BSY_Pos) & 0b1) == 1);
-    FLASH->CR |= (0b0010 << FLASH_CR_SNB_Pos);
     FLASH->CR |= FLASH_CR_SER;
+    FLASH->CR |= (0b0010 << FLASH_CR_SNB_Pos);
     FLASH->CR |= FLASH_CR_STRT;
+    /*
     while(((FLASH->SR >> FLASH_SR_BSY_Pos) & 0b1) == 1);
     FLASH->CR |= (0b0011 << FLASH_CR_SNB_Pos);
     FLASH->CR |= FLASH_CR_SER;
@@ -22,10 +26,12 @@ void clearFlash(){
     FLASH->CR |= (0b0100 << FLASH_CR_SNB_Pos);
     FLASH->CR |= FLASH_CR_SER;
     FLASH->CR |= FLASH_CR_STRT;
+    
     while(((FLASH->SR >> FLASH_SR_BSY_Pos) & 0b1) == 1);
     FLASH->CR |= (0b0101 << FLASH_CR_SNB_Pos);
     FLASH->CR |= FLASH_CR_SER;
     FLASH->CR |= FLASH_CR_STRT;
+    */
     while(((FLASH->SR >> FLASH_SR_BSY_Pos) & 0b1) == 1);
     FLASH->CR |= (0b0110 << FLASH_CR_SNB_Pos);
     FLASH->CR |= FLASH_CR_SER;
@@ -43,9 +49,14 @@ void initFLASH(void) {
     FLASH->OPTKEYR = 0x08192A3B;
     FLASH->OPTKEYR = 0x4C5D6E7F; // enable write to OPTCR
     FLASH->CR |= (0b01 << FLASH_CR_PSIZE_Pos); // half-word (16-bits)
+    while(((FLASH->SR >> FLASH_SR_BSY_Pos) & 0b1) == 1);
     FLASH->OPTCR |= (0xaa << FLASH_OPTCR_RDP_Pos);
+    FLASH->OPTCR |= FLASH_OPTCR_OPTSTRT;
     FLASH->OPTCR |= (FLASH_OPTCR_nWRP_1 | FLASH_OPTCR_nWRP_2 | FLASH_OPTCR_nWRP_3 | FLASH_OPTCR_nWRP_4 | FLASH_OPTCR_nWRP_5 | FLASH_OPTCR_nWRP_6 | FLASH_OPTCR_nWRP_7);
+    FLASH->OPTCR |= FLASH_OPTCR_OPTSTRT;
     FLASH->OPTCR &= ~(0b1 << 31);
+    FLASH->OPTCR |= FLASH_OPTCR_OPTSTRT;
+    while(((FLASH->SR >> FLASH_SR_BSY_Pos) & 0b1) == 1);
     clearFlash();
     FLASH->CR |= FLASH_CR_PG;
 }
