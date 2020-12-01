@@ -258,6 +258,7 @@ int main(void) {
     EXTI->FTSR |= 1 << 13; // PC13 is EXTI13
     __NVIC_EnableIRQ(EXTI15_10_IRQn); // enable button interrupt
     __NVIC_EnableIRQ(ADC_IRQn); // enable ADC interrupt
+    /*
     int playing = 0;
     while(1){
         delay_millis(TIM3, 300);
@@ -266,7 +267,7 @@ int main(void) {
             playing = 1;
         }
     }
-/*
+    */
     // Configure ESP and Terminal UARTs
     USART_TypeDef * ESP_USART = initUSART(ESP_USART_ID, 115200);
     USART_TypeDef * TERM_USART = initUSART(TERM_USART_ID, 115200);
@@ -322,7 +323,7 @@ int main(void) {
                         If REQ=OFF, then turn LED off.
                         If we don't recognize the REQ, then send message to terminal and don't do anything.
                     */
-                   /*
+                   
                     if(button_req == 1){
                         volatile uint8_t button_req_type;
                         if(look_for_substring("=PLAY", http_request)) button_req_type = REQ_PLAY;
@@ -356,21 +357,14 @@ int main(void) {
                     serveWebpage("<!DOCTYPE html>");
                     serveWebpage("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">");
                     serveWebpage("<title>Alien Voice Filter</title>");
-                    serveWebpage("<h3>~~ALiEn vOicE FiLteR~~</h3>");
-                    serveWebpage("<p>Welcome to the spooky alien voice filter!</p>");
-                    serveWebpage("<p>Press record to start recording your voice. Press stop recording to stop. The recording will automatically stop after 30 seconds.</p>");
-                    serveWebpage("<form action=\"REQ=PLAY\"><input type=\"submit\" value = \"Playback\"></form>");
-                    serveWebpage("<form action=\"REQ=SLOW\"><input type=\"submit\" value = \"Slow Down\"></form>");
-                    serveWebpage("<form action=\"REQ=FAST\"><input type=\"submit\" value = \"Speed Up\"></form>");
-                    serveWebpage("<form action=\"REQ=ALIEN\"><input type=\"submit\" value = \"Alien Voice\"></form>");
-
-                    // Read if LED is on or off and display to webpage.
-                    if(digitalRead(GPIOA, LED_PIN)){
-                        serveWebpage("<p>LED is ON.</p>");
-                    }
-                    else {
-                        serveWebpage("<p>LED is OFF.</p>");
-                    }
+                    serveWebpage("<h3 style=\"color:Green;\">~~ALiEn vOicE FiLteR~~</h3>");
+                    serveWebpage("<p style=\"color:RebeccaPurple;\">Welcome to the spooky alien voice filter!</p>");
+                    serveWebpage("<p style=\"color:Chartreuse;\">Press the blue button on the microcontroller to start recording your voice. Press the button again to stop. The recording will automatically stop after a set amount of time.</p>");
+                    serveWebpage("<p style=\"color:MediumSlateBlue;\">After you record, press one of the buttons below to play your filtered voice back.</p>");
+                    serveWebpage("<form action=\"REQ=PLAY\" style=\"background-color:SpringGreen;\"><input type=\"submit\" value = \"Playback\"></form>");
+                    serveWebpage("<form action=\"REQ=SLOW\" style=\"background-color:Indigo;\"><input type=\"submit\" value = \"Slow Down\"></form>");
+                    serveWebpage("<form action=\"REQ=FAST\" style=\"background-color:LimeGreen;\"><input type=\"submit\" value = \"Speed Up\"></form>");
+                    serveWebpage("<form action=\"REQ=ALIEN\" style=\"background-color:DarkViolet;\"><input type=\"submit\" value = \"Alien Voice\"></form>");
                 }
 
                 // Close connection
@@ -381,5 +375,5 @@ int main(void) {
             }
         }
     }
-    */
+    
 }
